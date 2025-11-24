@@ -109,7 +109,6 @@ const AssignLocation = ({ sidebarOpen }) => {
     <div className={`main-content ${sidebarOpen ? '' : 'sidebar-closed'}`}>
       <div className="form-container">
         <h1>Assign Location to Employee</h1>
-        {/* Employee assignments table */}
         <div style={{ overflowX: "auto", margin: '16px 0 32px 0' }}>
           <table style={{
             width: "100%",
@@ -195,35 +194,49 @@ const AssignLocation = ({ sidebarOpen }) => {
             position: "fixed",
             top: 0, left: 0,
             width: "100vw", height: "100vh",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(0,0,0,0.19)",
-            zIndex: 2000
+            background: "rgba(0,0,0,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+            padding: "20px"
           }}>
             <form onSubmit={handleSubmit} style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '16px',
-              alignItems: 'center',
-              background: '#f9fbff',
-              padding: '28px 38px',
-              borderRadius: '14px',
-              boxShadow: '0 6px 36px rgba(59,130,246,0.12)',
-              minWidth: '350px',
-              maxWidth: '440px',
-              width: '95%',
-              position: "relative"
+              background: "#fff",
+              borderRadius: "14px",
+              boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
+              padding: "30px 36px",
+              maxWidth: "440px",
+              width: "100%",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "16px",
+              position: "relative",
+              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
             }}>
               <button
                 type="button"
                 style={{
-                  position: "absolute", top: 14, right: 18,
-                  background: "none", border: "none",
-                  fontSize: "1.6rem", cursor: "pointer", color: "#8c9be6"
+                  position: "absolute",
+                  top: 14,
+                  right: 18,
+                  background: "none",
+                  border: "none",
+                  fontSize: "1.8rem",
+                  cursor: "pointer",
+                  color: "#6278f7",
+                  transition: "color 0.3s ease",
+                  padding: 0,
+                  lineHeight: 1
                 }}
+                onMouseEnter={e => e.currentTarget.style.color = "#294bb5"}
+                onMouseLeave={e => e.currentTarget.style.color = "#6278f7"}
                 onClick={() => setAssigningEmployeeId('')}
                 aria-label="Close"
-              >&times;</button>
-              <h3 style={{ width: "100%", color: "#2563eb", marginTop: 0 }}>
+              >
+                &times;
+              </button>
+              <h3 style={{ width: "100%", color: "#2563eb", marginTop: 0, fontWeight: "bold" }}>
                 Assign to {employees.find(emp => emp.employeeId === assigningEmployeeId)?.name} ({assigningEmployeeId})
               </h3>
               <input
@@ -233,7 +246,17 @@ const AssignLocation = ({ sidebarOpen }) => {
                 value={formData.assignmentDate}
                 onChange={handleChange}
                 required
-                style={{ flexBasis: "48%" }}
+                style={{
+                  flexBasis: "48%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: "1.5px solid #d2d7df",
+                  fontSize: "1rem",
+                  outline: "none",
+                  transition: "border-color 0.3s ease",
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
+                onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
               <input
                 name="locationId"
@@ -242,7 +265,19 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onChange={handleChange}
                 disabled={!formData.assignmentDate}
                 required
-                style={{ flexBasis: "48%" }}
+                style={{
+                  flexBasis: "48%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: !formData.assignmentDate ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
+                  fontSize: "1rem",
+                  outline: "none",
+                  transition: "border-color 0.3s ease",
+                  backgroundColor: !formData.assignmentDate ? '#f5f5f5' : '#fff',
+                  cursor: !formData.assignmentDate ? 'not-allowed' : 'text'
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
+                onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
               <select
                 name="role"
@@ -250,7 +285,19 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onChange={handleChange}
                 required
                 disabled={!formData.assignmentDate}
-                style={{ flexBasis: "48%" }}
+                style={{
+                  flexBasis: "48%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: !formData.assignmentDate ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
+                  fontSize: "1rem",
+                  outline: "none",
+                  transition: "border-color 0.3s ease",
+                  backgroundColor: !formData.assignmentDate ? '#f5f5f5' : '#fff',
+                  cursor: !formData.assignmentDate ? 'not-allowed' : 'pointer'
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
+                onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               >
                 <option value="">Select Role</option>
                 <option value="employee">Employee</option>
@@ -262,38 +309,54 @@ const AssignLocation = ({ sidebarOpen }) => {
                 value={formData.notes}
                 onChange={handleChange}
                 disabled={!formData.assignmentDate || !formData.role}
-                style={{ flexBasis: "48%" }}
+                style={{
+                  flexBasis: "48%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: (!formData.assignmentDate || !formData.role) ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
+                  fontSize: "1rem",
+                  outline: "none",
+                  transition: "border-color 0.3s ease",
+                  backgroundColor: (!formData.assignmentDate || !formData.role) ? '#f5f5f5' : '#fff',
+                  cursor: (!formData.assignmentDate || !formData.role) ? 'not-allowed' : 'text'
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
+                onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
               <button
                 type="submit"
+                disabled={!(formData.locationId && formData.assignmentDate && formData.role)}
                 style={{
-                  background: !(formData.locationId && formData.assignmentDate && formData.role) ? "#b4b8bc" : "#2156b9",
+                  flexBasis: "100%",
+                  backgroundColor: (formData.locationId && formData.assignmentDate && formData.role) ? "#2156b9" : "#b4b8bc",
                   color: "#fff",
                   padding: "12px 26px",
-                  fontWeight: 700,
                   borderRadius: "8px",
                   border: "none",
+                  fontWeight: 700,
                   fontSize: "1rem",
-                  marginTop: "10px",
-                  cursor: !(formData.locationId && formData.assignmentDate && formData.role) ? "not-allowed" : "pointer"
+                  cursor: (formData.locationId && formData.assignmentDate && formData.role) ? "pointer" : "not-allowed",
+                  transition: "background-color 0.3s ease",
+                  marginTop: "10px"
                 }}
-                disabled={!(formData.locationId && formData.assignmentDate && formData.role)}
               >
                 Assign Location
               </button>
               <button
                 type="button"
+                onClick={() => setAssigningEmployeeId('')}
                 style={{
-                  background: '#fff',
-                  color: '#2156b9',
-                  padding: "12px 22px",
-                  fontWeight: 600,
+                  flexBasis: "100%",
+                  background: "#fff",
+                  color: "#2156b9",
+                  padding: "12px 26px",
                   borderRadius: "8px",
                   border: "1.5px solid #a3b6e6",
+                  fontWeight: 600,
                   fontSize: "1rem",
-                  marginTop: "10px"
+                  cursor: "pointer",
+                  marginTop: "8px"
                 }}
-                onClick={() => setAssigningEmployeeId('')}
               >
                 Cancel
               </button>
@@ -333,7 +396,8 @@ const AssignLocation = ({ sidebarOpen }) => {
               <div style={{ marginBottom: "10px" }}><span style={{ color: "#757676", fontWeight: 600 }}>Role:</span> {viewingEmployee.role}</div>
               <div style={{
                 background: "#f8fafc",
-                padding: "14px 12px", borderRadius: "8px",
+                padding: "14px 12px",
+                borderRadius: "8px",
                 marginBottom: "18px",
                 border: "1px solid #d3e3fa"
               }}>
