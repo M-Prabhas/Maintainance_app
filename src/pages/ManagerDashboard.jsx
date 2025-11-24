@@ -93,7 +93,6 @@ const ManagerDashboard = ({ sidebarOpen }) => {
         </div>
 
         <div className="kpi-section">
-          <h2>Key Performance Indicators</h2>
           <div className="kpi-grid">
             <div className="kpi-card">
               <div className="kpi-content">

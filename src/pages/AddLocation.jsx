@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const AddLocation = () => {
+const AddLocation = ({ sidebarOpen }) => {
   const [formData, setFormData] = useState({
     city: '',
     region: '',
@@ -21,22 +21,24 @@ const AddLocation = () => {
   };
 
   return (
-    <div className="form-container">
-      <h1>Add New Location</h1>
-      <br />
-      <div style={{ marginBottom: '16px', color: '#444' }}>
-        <strong>Instructions:</strong> Enter the city, region, and state for the new location. All fields are required for accurate record keeping.
+    <div className={`main-content ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+      <div className="form-container">
+        <h1>Add New Location</h1>
+        <br />
+        <div style={{ marginBottom: '16px', color: '#444' }}>
+          <strong>Instructions:</strong> Enter the city, region, and state for the new location. All fields are required for accurate record keeping.
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+          <input name="city" placeholder="City" onChange={handleChange} required />
+          <input name="region" placeholder="Region" onChange={handleChange} required />
+          <input name="state" placeholder="State" onChange={handleChange} required />
+          <input name="address" placeholder="Address" onChange={handleChange} required />
+          <input name="postalCode" placeholder="Postal Code" onChange={handleChange} />
+          <input name="contactPerson" placeholder="Contact Person" onChange={handleChange} />
+          <input name="phone" placeholder="Phone" onChange={handleChange} />
+          <button type="submit">Add Location</button>
+        </form>
       </div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
-        <input name="city" placeholder="City" onChange={handleChange} required />
-        <input name="region" placeholder="Region" onChange={handleChange} required />
-        <input name="state" placeholder="State" onChange={handleChange} required />
-        <input name="address" placeholder="Address" onChange={handleChange} required />
-        <input name="postalCode" placeholder="Postal Code" onChange={handleChange} />
-        <input name="contactPerson" placeholder="Contact Person" onChange={handleChange} />
-        <input name="phone" placeholder="Phone" onChange={handleChange} />
-        <button type="submit">Add Location</button>
-      </form>
     </div>
   );
 };

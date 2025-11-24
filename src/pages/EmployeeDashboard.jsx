@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';import Header from '../components/common/Header';
 
 // Mock Data
 const mockAssignedStores = [
@@ -47,42 +47,28 @@ const currentUser = {
   role: 'Maintenance Engineer',
 };
 
-// Helper function to get stores
 const getAssignedStores = (employeeId) => {
   return mockAssignedStores;
 };
 
-const EmployeeDashboard = () => {
+const EmployeeDashboard = ({ sidebarOpen }) => {
   const navigate = useNavigate();
-
-  // Get assigned stores (mock)
   const assignedStores = getAssignedStores(currentUser.id);
 
-  // Date strings
   const today = new Date();
   const todayString = today.toISOString().slice(0, 10);
 
-  // Filter today's assignments
-  const todaysAssignments = assignedStores.filter(store => {
-    return mockManagementHistory.some(record =>
+  const todaysAssignments = assignedStores.filter(store =>
+    mockManagementHistory.some(record =>
       record.storeId === store.id &&
       record.employeeId === currentUser.id &&
       new Date(record.date).toISOString().slice(0, 10) === todayString
-    );
-  });
+    )
+  );
 
-  // Work history for employee
   const employeeHistory = mockManagementHistory
     .filter(record => record.employeeId === currentUser.id)
     .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  // KPIs
-  const totalCompleted = employeeHistory.length;
-  const thisMonthCount = employeeHistory.filter(r => {
-    const d = new Date(r.date);
-    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-  }).length;
-  const totalHours = employeeHistory.reduce((sum, r) => sum + parseFloat(r.duration), 0);
 
   const [activeTab, setActiveTab] = useState('today');
 
@@ -95,180 +81,152 @@ const EmployeeDashboard = () => {
     return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  // Styles
-  const styles = {
-    container: {
-      minHeight: '90vh',
-      width: '90vw',
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      backgroundColor: '#fefefe',
-      borderRadius: 10,
-      padding: 20,
-      boxSizing: 'border-box',
-      boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-      overflow: 'hidden',
-    },
-    KPIs: {
-      display: 'flex',
-      justifyContent: 'space-around',
-      flexWrap: 'wrap',
-      marginBottom: 20,
-      backgroundColor: '#1976d2',
-      borderRadius: 8,
-      padding: 15,
-    },
-    KPIBox: {
-      flex: '1 1 150px',
-      minWidth: 150,
-      textAlign: 'center',
-      padding: 10,
-    },
-    KPIValue: {
-      fontSize: '2.2rem',
-      fontWeight: '700',
-      color: 'white',
-    },
-    tabs: {
-      display: 'flex',
-      justifyContent: 'center',
-      marginBottom: 20,
-    },
-    tabBtn: (active) => ({
-      padding: '0.6rem 1.8rem',
-      fontSize: '1.1rem',
-      borderRadius: 30,
-      cursor: 'pointer',
-      backgroundColor: active ? '#1976d2' : '#d0e2f3',
-      color: active ? 'white' : '#1976d2',
-      border: 'none',
-      outline: 'none',
-      fontWeight: active ? 700 : 600,
-      boxShadow: active ? '0 4px 15px rgba(25, 118, 210, 0.4)' : 'none',
-      transition: 'all 0.3s ease',
-      margin: '0 8px',
-    }),
-    contentBox: {
-      overflowY: 'auto',
-      maxHeight: 'calc(100vh - 220px)',
-      padding: 10,
-      borderRadius: 8,
-      backgroundColor: '#fff',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-    },
-    th: {
-      backgroundColor: '#1976d2',
-      color: 'white',
-      padding: '12px 15px',
-      textAlign: 'left',
-      position: 'sticky',
-      top: 0,
-      zIndex: 2,
-    },
-    td: {
-      padding: '12px 15px',
-      borderBottom: '1px solid #eee',
-    },
-    rowHover: {
-      cursor: 'pointer',
-      backgroundColor: '#f1f9ff',
-      transition: 'background-color 0.2s',
-    },
-    noData: {
-      textAlign: 'center',
-      fontStyle: 'italic',
-      color: '#777',
-      padding: 20,
-    },
-    headerTitle: {
-      textAlign: 'center',
-      fontSize: '2rem',
-      fontWeight: 'bold',
-      marginBottom: 10,
-      color: '#333',
-    },
-  };
+  // KPI values
+  const totalStores = assignedStores.length;
+  const locationsAssigned = todaysAssignments.length;
+  const workCompleted = employeeHistory.length;
+  const status = todaysAssignments.length === 0 ? "Free" : "Active";
 
   return (
-    <div style={styles.container}>
-      {/* KPIs section */}
-      <div style={styles.KPIs}>
-        <div style={styles.KPIBox}>
-          <div style={styles.KPIValue}>{totalCompleted}</div>
-          <div style={{ color: 'white' }}>Total Completed</div>
-        </div>
-        <div style={styles.KPIBox}>
-          <div style={styles.KPIValue}>{thisMonthCount}</div>
-          <div style={{ color: 'white' }}>This Month</div>
-        </div>
-        <div style={styles.KPIBox}>
-          <div style={styles.KPIValue}>{totalHours.toFixed(1)}</div>
-          <div style={{ color: 'white' }}>Total Hours</div>
+     <div>
+      <Header />
+    <main className={`main-content${sidebarOpen ? '' : ' sidebar-closed'}`}>
+      <div className="dashboard-header">
+        <h1>Employee Dashboard</h1>
+      </div>
+
+      {/* KPI Section */}
+      <div className="kpi-section">
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <h3>Total Stores</h3>
+              <div className="kpi-value">{totalStores}</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <h3>Locations Assigned</h3>
+              <div className="kpi-value">{locationsAssigned}</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <h3>Work Completed</h3>
+              <div className="kpi-value">{workCompleted}</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <h3>Status</h3>
+              <div className="kpi-value" style={{ fontSize: "2.4rem" }}>{status}</div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={styles.tabs}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'flex-start',
+        gap: '12px',
+        marginBottom: '14px',
+        marginTop: '18px'
+      }}>
         <button
-          style={styles.tabBtn(activeTab === 'today')}
+          style={{
+            padding: '10px 36px',
+            fontSize: '1.1rem',
+            borderRadius: 32,
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'today' ? '#1976d2' : '#ddeafc',
+            color: activeTab === 'today' ? 'white' : '#1976d2',
+            border: 'none',
+            outline: 'none',
+            fontWeight: activeTab === 'today' ? 700 : 600,
+            boxShadow: activeTab === 'today' ? '0 4px 15px rgba(25, 118, 210, 0.17)' : 'none',
+            transition: 'all 0.3s ease'
+          }}
           onClick={() => setActiveTab('today')}
         >
           📍 Today's Assignments ({todaysAssignments.length})
         </button>
         <button
-          style={styles.tabBtn(activeTab === 'history')}
+          style={{
+            padding: '10px 34px',
+            fontSize: '1.1rem',
+            borderRadius: 32,
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'history' ? '#1976d2' : '#ddeafc',
+            color: activeTab === 'history' ? 'white' : '#1976d2',
+            border: 'none',
+            outline: 'none',
+            fontWeight: activeTab === 'history' ? 700 : 600,
+            boxShadow: activeTab === 'history' ? '0 4px 15px rgba(25, 118, 210, 0.17)' : 'none',
+            transition: 'all 0.3s ease'
+          }}
           onClick={() => setActiveTab('history')}
         >
           📜 Work History ({employeeHistory.length})
         </button>
       </div>
 
-      {/* Content Area */}
-      <div style={styles.contentBox}>
+      {/* Content Box */}
+      <div style={{
+        overflowY: 'auto',
+        maxHeight: 'calc(100vh - 300px)',
+        padding: '18px 10px',
+        borderRadius: '8px',
+        backgroundColor: '#fff',
+        margin: '0 10px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.045)'
+      }}>
         {activeTab === 'today' && (
           <>
-            <div style={styles.headerTitle}>Today's Assignments</div>
+            <div style={{
+              textAlign: 'center',
+              fontSize: '1.51rem',
+              fontWeight: 'bold',
+              marginBottom: 10,
+              color: '#1748a0'
+            }}>
+              Today's Assignments
+            </div>
             {todaysAssignments.length > 0 ? (
-              <table style={styles.table}>
+              <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
                 <thead>
                   <tr>
-                    <th style={styles.th}>Store</th>
-                    <th style={styles.th}>Address</th>
-                    <th style={styles.th}>Contact</th>
-                    <th style={styles.th}>Phone</th>
-                    <th style={styles.th}>Action</th>
+                    <th>Store</th>
+                    <th>Address</th>
+                    <th>Contact</th>
+                    <th>Phone</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {todaysAssignments.map((store) => (
                     <tr
                       key={store.id}
-                      style={styles.rowHover}
                       tabIndex={0}
-                      role="button"
+                      className="row-hover"
                       aria-label={`Inspect ${store.name}`}
                       onClick={() => handleStoreClick(store.id)}
                       onKeyDown={(e) => e.key === 'Enter' && handleStoreClick(store.id)}
                     >
-                      <td style={styles.td}>{store.name}</td>
-                      <td style={styles.td}>{store.address}</td>
-                      <td style={styles.td}>{store.contactPerson}</td>
-                      <td style={styles.td}>{store.contactNumber}</td>
-                      <td style={styles.td}>
+                      <td>{store.name}</td>
+                      <td>{store.address}</td>
+                      <td>{store.contactPerson}</td>
+                      <td>{store.contactNumber}</td>
+                      <td>
                         <button
                           style={{
-                            padding: '6px 14px',
+                            padding: '8px 16px',
                             backgroundColor: '#1976d2',
-                            color: 'white',
+                            color: '#fff',
                             border: 'none',
                             borderRadius: 12,
                             fontWeight: '600',
-                            cursor: 'pointer',
+                            cursor: 'pointer'
                           }}
                           onClick={(e) => { e.stopPropagation(); handleStoreClick(store.id); }}
                         >
@@ -280,44 +238,72 @@ const EmployeeDashboard = () => {
                 </tbody>
               </table>
             ) : (
-              <div style={styles.noData}>No assignments scheduled for today.</div>
+              <div style={{
+                textAlign: 'center',
+                fontStyle: 'italic',
+                color: '#777',
+                padding: 28,
+                fontSize: '1.1rem'
+              }}>
+                No assignments scheduled for today.
+              </div>
             )}
           </>
         )}
         {activeTab === 'history' && (
           <>
-            <div style={styles.headerTitle}>Work History</div>
+            <div style={{
+              textAlign: 'center',
+              fontSize: '1.51rem',
+              fontWeight: 'bold',
+              marginBottom: 10,
+              color: '#1748a0'
+            }}>
+              Work History
+            </div>
             {employeeHistory.length > 0 ? (
-              <table style={styles.table}>
+              <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
                 <thead>
                   <tr>
-                    <th style={styles.th}>Store</th>
-                    <th style={styles.th}>Date</th>
-                    <th style={styles.th}>Duration</th>
-                    <th style={styles.th}>Status</th>
-                    <th style={styles.th}>Remarks</th>
+                    <th>Store</th>
+                    <th>Date</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employeeHistory.map((entry) => (
-                    <tr key={entry.id} style={{ cursor: 'default' }}>
-                      <td style={styles.td}>{entry.storeName}</td>
-                      <td style={styles.td}>{formatDate(entry.date)}</td>
-                      <td style={styles.td}>{entry.duration}</td>
-                      <td style={{ ...styles.td, fontWeight: 600, color: entry.status === 'completed' ? '#4caf50' : '#f57c00' }}>
+                    <tr key={entry.id}>
+                      <td>{entry.storeName}</td>
+                      <td>{formatDate(entry.date)}</td>
+                      <td>{entry.duration}</td>
+                      <td style={{
+                        fontWeight: 600,
+                        color: entry.status === 'completed' ? '#4caf50' : '#f57c00'
+                      }}>
                         {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                       </td>
-                      <td style={styles.td}>{entry.remarks}</td>
+                      <td>{entry.remarks}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <div style={styles.noData}>No maintenance history found.</div>
+              <div style={{
+                textAlign: 'center',
+                fontStyle: 'italic',
+                color: '#777',
+                padding: 28,
+                fontSize: '1.1rem'
+              }}>
+                No maintenance history found.
+              </div>
             )}
           </>
         )}
       </div>
+    </main>
     </div>
   );
 };

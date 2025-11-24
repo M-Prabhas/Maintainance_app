@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
+// Mock Data
 const mockStores = [
   { id: 1, name: 'Central Mall', address: '123 Main St, Cityville' },
   { id: 2, name: 'Eastside Plaza', address: '456 East Rd, Townsville' },
@@ -21,7 +22,7 @@ const initialChecklist = {
   31: { isChecked: false, remarks: '', status: '' },
 };
 
-const EmployeeInspection = () => {
+const EmployeeInspection = ({ sidebarOpen = true }) => {
   const { storeId } = useParams();
   const navigate = useNavigate();
 
@@ -52,230 +53,255 @@ const EmployeeInspection = () => {
   const handleStatusChange = (applianceId, status) => {
     updateChecklist(applianceId, { status });
     setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    setTimeout(() => setShowSuccess(false), 2800);
   };
 
   if (!store) {
     return (
-      <div style={{ fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', textAlign: 'center', padding: 40, color: '#b00020' }}>
-        Store not found.
-      </div>
+      <div style={{
+        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+        textAlign: 'center',
+        padding: 40,
+        color: '#b00020'
+      }}>Store not found.</div>
     );
   }
 
   return (
-    <div
-      className="employee-inspection"
+    <div className={`main-content ${sidebarOpen ? '' : 'sidebar-closed'}`}
       style={{
-        maxWidth: 900,
-        margin: '2rem auto',
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        backgroundColor: '#f9f9fb',
-        borderRadius: 12,
-        padding: 24,
-        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+        minHeight: '100vh',
+        background: '#f6f8fc',
+        display: 'flex',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        paddingTop: '35px',
+        paddingBottom: '35px'
       }}
     >
-      <h1
+      <div
+        className="employee-inspection"
         style={{
-          fontWeight: 700,
-          fontSize: '2.4rem',
-          marginBottom: 8,
-          color: '#2c3e50',
-          borderBottom: '2px solid #1976d2',
-          paddingBottom: 8,
+          maxWidth: '900px',
+          width: '100%',
+          backgroundColor: '#f9f9fb',
+          borderRadius: 18,
+          padding: '2.3rem 2.2rem',
+          boxShadow: '0 6px 32px rgba(25,118,210,0.10)',
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          transition: 'box-shadow 0.25s'
         }}
       >
-        Appliance Inspection - {store.name}
-      </h1>
-      <p style={{ fontSize: '1rem', color: '#555', marginBottom: 20 }}>{store.address}</p>
-
-      {showSuccess && (
-        <div
-          className="success-message"
+        <h1
           style={{
-            color: '#155724',
-            backgroundColor: '#d4edda',
-            border: '1px solid #c3e6cb',
-            borderRadius: 6,
-            padding: '12px 20px',
-            marginBottom: 20,
-            fontWeight: 600,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            userSelect: 'none',
+            fontWeight: 800,
+            fontSize: '2.2rem',
+            marginBottom: 0,
+            color: '#1976d2',
+            letterSpacing: '1.5px',
+            textAlign: 'center',
+            borderBottom: '2px solid #eeeeee',
+            paddingBottom: 6,
           }}
         >
-          ✓ Status updated successfully!
-        </div>
-      )}
+          Appliance Inspection <span style={{ color: '#333' }}>- {store.name}</span>
+        </h1>
+        <p style={{ fontSize: '1.13rem', color: '#555', marginBottom: 24, textAlign: 'center' }}>{store.address}</p>
 
-      <div className="inspection-list">
-        {appliances.map(appliance => {
-          const item = checklist[appliance.id];
-          return (
-            <div
-              key={appliance.id}
-              className="inspection-item"
-              style={{
-                backgroundColor: '#fff',
-                borderRadius: 12,
-                padding: 20,
-                marginBottom: 20,
-                boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
-                transition: 'transform 0.2s ease',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.01)')}
-              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-            >
+        {showSuccess && (
+          <div
+            style={{
+              color: '#155724',
+              backgroundColor: '#e7f6e7',
+              border: '1.5px solid #c6e3c6',
+              borderRadius: 6,
+              padding: '10px 20px',
+              marginBottom: 16,
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.07)',
+              userSelect: 'none',
+              fontSize: '1.03em'
+            }}
+          >
+            ✓ Status updated successfully!
+          </div>
+        )}
+
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 26,
+          justifyContent: 'flex-start'
+        }}>
+          {appliances.map(appliance => {
+            const item = checklist[appliance.id];
+            return (
               <div
-                className="appliance-header"
+                key={appliance.id}
                 style={{
+                  backgroundColor: '#fff',
+                  borderRadius: 14,
+                  padding: 22,
+                  minWidth: '300px',
+                  flex: '1 1 330px',
+                  marginBottom: 10,
+                  boxShadow: '0 3px 22px rgba(25,118,210,0.09)',
+                  transition: 'transform 0.18s, box-shadow 0.25s',
                   display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                  gap: 16,
+                  flexDirection: 'column',
                 }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.017)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
               >
-                <input
-                  type="checkbox"
-                  checked={item.isChecked}
-                  onChange={e => handleCheckboxChange(appliance.id, e.target.checked)}
+                <div
                   style={{
-                    cursor: 'pointer',
-                    width: 24,
-                    height: 24,
-                    accentColor: '#1976d2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 15,
+                    marginBottom: 12
                   }}
-                />
-                <div>
-                  <h3
+                >
+                  <input
+                    type="checkbox"
+                    checked={item.isChecked}
+                    onChange={e => handleCheckboxChange(appliance.id, e.target.checked)}
                     style={{
-                      margin: 0,
-                      fontSize: '1.5rem',
-                      color: '#34495e',
+                      cursor: 'pointer',
+                      width: 24,
+                      height: 24,
+                      accentColor: '#1976d2',
+                    }}
+                  />
+                  <div>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: '1.33rem',
+                        color: '#222',
+                        fontWeight: '700',
+                        lineHeight: 1.25,
+                        userSelect: 'none',
+                      }}
+                    >
+                      {appliance.name}
+                    </h3>
+                    <p style={{ margin: '5px 0', fontWeight: 500, color: '#7f8c8d', fontSize: '1.011em' }}>
+                      {appliance.model} <span style={{ fontWeight: 400, color: '#ccc' }}>&#8226;</span> {appliance.serialNumber}
+                    </p>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.93rem', color: '#95a5a6', userSelect: 'none' }}>
+                      <strong>Category:</strong> {appliance.category} | <strong>AMC:</strong> {appliance.amcVendor}
+                    </p>
+                  </div>
+                </div>
+                <textarea
+                  placeholder="Enter remarks..."
+                  value={item.remarks}
+                  onChange={e => handleRemarksChange(appliance.id, e.target.value)}
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    resize: 'vertical',
+                    padding: 12,
+                    fontSize: '1em',
+                    border: '1.6px solid #e3e9f2',
+                    borderRadius: 8,
+                    boxShadow: 'inset 0 1px 3px rgba(25,118,210,0.07)',
+                    marginBottom: 14,
+                    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                  }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#1976d2')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#e3e9f2')}
+                />
+                <div style={{
+                  display: 'flex',
+                  gap: 14,
+                  marginTop: 2,
+                }}>
+                  <button
+                    onClick={() => handleStatusChange(appliance.id, 'completed')}
+                    style={{
+                      flex: 1,
+                      padding: '12px 0',
+                      backgroundColor: item.status === 'completed' ? '#4caf50' : '#e0e0e0',
+                      color: item.status === 'completed' ? '#fff' : '#333',
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: '1em',
                       fontWeight: 700,
+                      boxShadow:
+                        item.status === 'completed'
+                          ? '0 4px 10px rgba(76, 175, 80, 0.23)'
+                          : 'none',
+                      cursor: 'pointer',
                       userSelect: 'none',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={e => {
+                      if (item.status !== 'completed') e.currentTarget.style.backgroundColor = '#aed581';
+                    }}
+                    onMouseLeave={e => {
+                      if (item.status !== 'completed') e.currentTarget.style.backgroundColor = '#e0e0e0';
                     }}
                   >
-                    {appliance.name}
-                  </h3>
-                  <p style={{ margin: 0, fontWeight: 500, color: '#7f8c8d' }}>
-                    {appliance.model} - {appliance.serialNumber}
-                  </p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: '#95a5a6', userSelect: 'none' }}>
-                    <strong>Category:</strong> {appliance.category} | <strong>AMC:</strong> {appliance.amcVendor}
-                  </p>
+                    ✓ Completed
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(appliance.id, 'hold')}
+                    style={{
+                      flex: 1,
+                      padding: '12px 0',
+                      backgroundColor: item.status === 'hold' ? '#f57c00' : '#e0e0e0',
+                      color: item.status === 'hold' ? '#fff' : '#333',
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: '1em',
+                      fontWeight: 700,
+                      boxShadow:
+                        item.status === 'hold'
+                          ? '0 4px 10px rgba(245, 124, 0, 0.17)'
+                          : 'none',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={e => {
+                      if (item.status !== 'hold') e.currentTarget.style.backgroundColor = '#ffb74d';
+                    }}
+                    onMouseLeave={e => {
+                      if (item.status !== 'hold') e.currentTarget.style.backgroundColor = '#e0e0e0';
+                    }}
+                  >
+                    ⏸ Hold
+                  </button>
                 </div>
               </div>
-
-              <textarea
-                placeholder="Enter your remarks here..."
-                value={item.remarks}
-                onChange={e => handleRemarksChange(appliance.id, e.target.value)}
-                rows={3}
-                style={{
-                  width: '100%',
-                  resize: 'vertical',
-                  padding: 12,
-                  fontSize: '1rem',
-                  border: '1.5px solid #d1d8e0',
-                  borderRadius: 8,
-                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)',
-                  marginBottom: 12,
-                  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                  transition: 'border-color 0.3s ease',
-                }}
-                onFocus={e => (e.currentTarget.style.borderColor = '#1976d2')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#d1d8e0')}
-              />
-
-              <div className="status-buttons" style={{ display: 'flex', gap: 16 }}>
-                <button
-                  className={`btn-completed ${item.status === 'completed' ? 'active' : ''}`}
-                  onClick={() => handleStatusChange(appliance.id, 'completed')}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    backgroundColor: item.status === 'completed' ? '#4caf50' : '#e0e0e0',
-                    color: item.status === 'completed' ? '#fff' : '#333',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow:
-                      item.status === 'completed'
-                        ? '0 4px 10px rgba(76, 175, 80, 0.5)'
-                        : 'none',
-                    transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
-                    userSelect: 'none',
-                  }}
-                  onMouseEnter={e => {
-                    if (item.status !== 'completed') e.currentTarget.style.backgroundColor = '#aed581';
-                  }}
-                  onMouseLeave={e => {
-                    if (item.status !== 'completed') e.currentTarget.style.backgroundColor = '#e0e0e0';
-                  }}
-                >
-                  ✓ Completed
-                </button>
-                <button
-                  className={`btn-hold ${item.status === 'hold' ? 'active' : ''}`}
-                  onClick={() => handleStatusChange(appliance.id, 'hold')}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    backgroundColor: item.status === 'hold' ? '#f57c00' : '#e0e0e0',
-                    color: item.status === 'hold' ? '#fff' : '#333',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow:
-                      item.status === 'hold'
-                        ? '0 4px 10px rgba(245, 124, 0, 0.5)'
-                        : 'none',
-                    transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
-                    userSelect: 'none',
-                  }}
-                  onMouseEnter={e => {
-                    if (item.status !== 'hold') e.currentTarget.style.backgroundColor = '#ffb74d';
-                  }}
-                  onMouseLeave={e => {
-                    if (item.status !== 'hold') e.currentTarget.style.backgroundColor = '#e0e0e0';
-                  }}
-                >
-                  ⏸ Hold
-                </button>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        <button
+          onClick={() => navigate('/employee')}
+          style={{
+            marginTop: 32,
+            padding: '14px 36px',
+            backgroundColor: '#1976d2',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 14,
+            fontSize: '1.13rem',
+            fontWeight: '700',
+            cursor: 'pointer',
+            boxShadow: '0 6px 16px rgba(25, 118, 210, 0.13)',
+            userSelect: 'none',
+            transition: 'background-color 0.22s',
+            display: 'block',
+            marginLeft: 'auto'
+          }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1565c0')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1976d2')}
+        >
+          ← Back to Dashboard
+        </button>
       </div>
-
-      <button
-        className="btn-back"
-        onClick={() => navigate('/employee')}
-        style={{
-          marginTop: 24,
-          padding: '12px 24px',
-          backgroundColor: '#1976d2',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 12,
-          fontSize: '1.1rem',
-          fontWeight: '700',
-          cursor: 'pointer',
-          boxShadow: '0 6px 12px rgba(25, 118, 210, 0.5)',
-          userSelect: 'none',
-          transition: 'background-color 0.3s ease',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1565c0')}
-        onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1976d2')}
-      >
-        ← Back to Dashboard
-      </button>
     </div>
   );
 };

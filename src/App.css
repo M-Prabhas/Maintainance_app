@@ -8,6 +8,20 @@
 /* Full height for html, body, and root */
 html, body, #root {
   height: 100%;
+  overflow-x: hidden;
+}
+
+/* Reset and box-sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Full height for html, body, and root */
+html, body, #root {
+  height: 100%;
+  overflow-x: hidden;
 }
 
 /* Body basic styles */
@@ -18,7 +32,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #f5f7fa;
   color: #111;
-  /* Padding to offset fixed header height */
   padding-top: 64px;
 }
 
@@ -89,7 +102,7 @@ a {
   top: 64px;
   left: 0;
   height: calc(100vh - 64px);
-  width: 260px;
+  width: 300px;               /* widened from 260px */
   background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
   display: flex;
@@ -97,12 +110,16 @@ a {
   overflow-y: auto;
   transition: width 0.3s ease;
   z-index: 1050;
+  padding-inline: 8px;         /* inner padding */
 }
 .sidebar.closed {
   width: 70px;
+  padding-inline: 0;           /* no extra padding when collapsed */
 }
+
+/* Sidebar header */
 .sidebar-header {
-  padding: 20px;
+  padding: 20px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -114,6 +131,282 @@ a {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Toggle button */
+.toggle-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background 0.3s;
+}
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Sidebar navigation */
+.sidebar-nav {
+  padding: 16px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Navigation items */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;          /* horizontal padding */
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  transition: all 0.3s;
+  border-left: 4px solid transparent;
+  border-radius: 6px;
+}
+.nav-item:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+.nav-item.active {
+  background: rgba(255,255,255,0.15);
+  border-left-color: #60a5fa;
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+  min-width: 30px;
+  display: inline-block;
+}
+
+.nav-label {
+  margin-left: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;         /* keep in one line */
+}
+.sidebar.closed .nav-label {
+  display: none;
+}
+.sidebar.closed .nav-item {
+  justify-content: center;
+}
+
+/* Main content with responsive margin and width */
+.main-content {
+  padding: 20px;
+  min-height: calc(100vh - 64px);
+  margin-left: 120px;           /* width of sidebar expanded */
+  margin-right: auto;
+  max-width: 1100px;
+  box-sizing: border-box;
+  background: transparent;
+  transition: margin-left 0.3s ease, max-width 0.3s ease;
+}
+
+.main-content.sidebar-closed {
+  margin-left: 10px;           /* width of sidebar collapsed */
+  max-width: calc(100% - 70px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .main-content {
+    max-width: 100%;
+    margin-left: 300px;
+    margin-right: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100% !important;
+    padding-inline: 0 !important;
+    position: relative !important;
+    height: auto !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: 100% !important;
+    padding: 20px;
+  }
+}
+
+/* Table container with dynamic width and no horizontal scroll */
+.stores-table-container {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow-x: visible;         /* prevent horizontal scroll */
+  margin-top: 20px;
+  width: 100%;                 /* fill parent width */
+  box-sizing: border-box;
+  transition: width 0.3s ease;
+}
+
+/* Table full width, fixed layout for wrapping content */
+.stores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: visible;
+  table-layout: fixed;
+  word-wrap: break-word;
+}
+
+/* Table cells text wrap and padding */
+.stores-table th, .stores-table td {
+  padding: 14px 12px;
+  border: 1px solid #dee2e6;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word;
+}
+
+/* Location cell border and styling */
+.location-cell {
+  background: #e7f3ff;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-align: center;
+  vertical-align: middle;
+  border-right: 3px solid #667eea !important;
+}
+
+/* Ensure smooth resizing of main content and table container when sidebar toggles */
+.sidebar.closed ~ .main-content,
+.main-content.sidebar-closed {
+  margin-left: 70px;
+  max-width: calc(100% - 70px);
+}
+
+/* Optional: transition for stores table container width */
+.stores-table-container {
+  transition: width 0.3s ease;
+}
+
+/* Keep the previous styles for inputs, buttons, KPIs, etc. unchanged... */
+/* (Add the rest of your styles here as needed) */
+
+
+
+
+/* Body basic styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f5f7fa;
+  color: #111;
+  padding-top: 64px;
+}
+
+/* Responsive media elements */
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Form elements inherit font */
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* Links styling */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Fixed dashboard header */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  user-select: none;
+}
+
+.header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-info {
+  color: #666;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.logout-btn:hover {
+  background: #c82333;
+}
+
+/* Sidebar with transition for open/close */
+.sidebar {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  height: calc(100vh - 64px);
+  width: 300px;               /* widened from 260px */
+  background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 1050;
+  padding-inline: 8px;         /* inner padding so labels don't touch edge */
+}
+.sidebar.closed {
+  width: 70px;
+  padding-inline: 0;           /* no extra padding when collapsed */
+}
+
+.sidebar-header {
+  padding: 20px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  min-height: 80px;
+}
+.sidebar-header h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .toggle-btn {
   background: rgba(255,255,255,0.1);
   border: none;
@@ -129,19 +422,20 @@ a {
 }
 
 .sidebar-nav {
-  padding: 20px 0;
+  padding: 16px 0;
   flex: 1;
   overflow-y: auto;
 }
+
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 14px 20px;
+  padding: 12px 16px;          /* enough horizontal padding for full text */
   color: rgba(255,255,255,0.8);
-  text-decoration: none;
   cursor: pointer;
   transition: all 0.3s;
   border-left: 4px solid transparent;
+  border-radius: 6px;
 }
 .nav-item:hover {
   background: rgba(255,255,255,0.1);
@@ -151,16 +445,18 @@ a {
   background: rgba(255,255,255,0.15);
   border-left-color: #60a5fa;
 }
+
 .nav-icon {
   font-size: 1.5rem;
   min-width: 30px;
   display: inline-block;
 }
+
 .nav-label {
-  margin-left: 15px;
+  margin-left: 12px;
   font-size: 0.95rem;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: nowrap;        /* keep “Assign Employee” in one line */
 }
 .sidebar.closed .nav-label {
   display: none;
@@ -173,16 +469,36 @@ a {
 .main-content {
   padding: 20px;
   min-height: calc(100vh - 64px);
-  margin-left: 260px;
-  transition: margin-left 0.3s ease;
-  background: transparent;
+  margin-left: 260px; /* sidebar width */
+  margin-right: auto;
+  max-width: 1100px; /* or any preferred max width */
   box-sizing: border-box;
+  background: transparent;
+  transition: margin-left 0.3s ease;
 }
+
+@media (max-width: 1200px) {
+  .main-content {
+    max-width: 100%;
+    margin-left: 260px;
+    margin-right: 20px; 
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 20px;
+  }
+}
+
 .main-content.dashboard {
-  margin-left: 30px;
+  margin-left: 30px;           /* dashboard variant (no full sidebar) */
 }
 .main-content.sidebar-closed {
-  margin-left: 60px;
+  margin-left: 30px;           /* when sidebar is closed */
 }
 
 /* Form inputs with padding and no truncation */
@@ -199,7 +515,6 @@ input, select, textarea {
   background: #fff;
   resize: vertical;
 }
-/* Add distinct form styles if needed for other pages */
 .add-appliance-form input,
 .add-appliance-form select,
 .add-appliance-form textarea {
@@ -473,6 +788,8 @@ button:hover {
   }
   .sidebar {
     height: auto;
+    width: 100%;
+    padding-inline: 0;
   }
   .main-content, .main-content.dashboard {
     margin-left: 0 !important;
@@ -612,6 +929,7 @@ button:hover {
   font-size: 0.97rem;
 }
 
+/* Notifications page */
 .notifications-page {
   width: 100vw;
   min-height: calc(100vh - 64px);
@@ -692,7 +1010,7 @@ button:hover {
   border-radius: 6px;
 }
 
-/* Responsive: remove bonus padding on small screens */
+/* Responsive: notifications on small screens */
 @media (max-width: 768px) {
   .notifications-page h1 {
     padding-left: 11px;
@@ -703,6 +1021,3 @@ button:hover {
     padding-right: 7px;
   }
 }
-
-
-

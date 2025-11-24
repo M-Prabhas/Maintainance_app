@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-
+import { FaTachometerAlt, FaPlusCircle, FaMapMarkerAlt, FaUserTie, FaBell } from 'react-icons/fa';
 const Sidebar = ({ userRole, isOpen, setIsOpen }) => {
   const location = useLocation();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/manager', roles: ['manager', 'employee', 'thirdparty'] },
-    { id: 'add-appliance', label: 'Add Appliance', icon: '➕', path: '/add-appliance', roles: ['manager'] },
-    { id: 'add-location', label: 'Add New Location', icon: '📍', path: '/add-location', roles: ['manager'] },
-    { id: 'assign-location', label: 'Assign Location to Employee', icon: '👥', path: '/assign-location', roles: ['manager'] },
-    { id: 'notifications', label: 'Notifications', icon: '🔔', path: '/notifications', roles: ['manager', 'employee', 'thirdparty'] }
+    { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, path: '/manager', roles: ['manager', 'employee', 'thirdparty'] },
+    { id: 'add-appliance', label: 'Add Appliance', icon: <FaPlusCircle />, path: '/add-appliance', roles: ['manager'] },
+    { id: 'add-location', label: 'Add New Location', icon: <FaMapMarkerAlt />, path: '/add-location', roles: ['manager'] },
+    { id: 'assign-location', label: 'Assign Location to Employee',icon: <FaUserTie />, path: '/assign-location', roles: ['manager'] },
+    { id: 'notifications', label: 'Notifications',  icon: <FaBell />, path: '/notifications', roles: ['manager', 'employee', 'thirdparty'] }
   ];
 
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
