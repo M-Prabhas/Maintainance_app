@@ -219,7 +219,7 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
                 <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Location</th>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Address</th>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Contact</th>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Phone</th>
