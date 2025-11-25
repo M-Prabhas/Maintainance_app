@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 
 // Mock sample data
 const mockEmployees = [
@@ -45,7 +45,103 @@ const mockEmployees = [
   }
 ];
 
-const rowsPerPage = 5; // number of rows per page for pagination
+// Mock locations for dropdown
+const mockLocations = [
+  { id: 'L001', city: 'Delhi' },
+  { id: 'L002', city: 'Mumbai' },
+  { id: 'L003', city: 'Pune' },
+];
+
+const rowsPerPage = 5;
+
+const LocationSelect = ({ value, onChange, disabled, options }) => {
+  const [searchText, setSearchText] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setIsOpen(false);
+        setSearchText('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.id === value);
+
+  const filteredOptions = searchText.trim() === ''
+    ? options
+    : options.filter(opt =>
+        opt.id.toLowerCase().includes(searchText.toLowerCase()) ||
+        opt.city.toLowerCase().includes(searchText.toLowerCase())
+      );
+
+  const handleSelect = (id) => {
+    onChange(id);
+    setIsOpen(false);
+    setSearchText('');
+  };
+
+  return (
+    <div style={{ position: 'relative', flexBasis: "48%" }} ref={ref}>
+      <input
+        type="text"
+        value={isOpen ? searchText : (selectedOption ? `${selectedOption.id} - ${selectedOption.city}` : '')}
+        onChange={e => { setSearchText(e.target.value); setIsOpen(true); }}
+        onFocus={() => setIsOpen(true)}
+        disabled={disabled}
+        placeholder="Select Location"
+        style={{
+          width: '100%',
+          padding: "10px 12px",
+          borderRadius: "8px",
+          border: disabled ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
+          fontSize: "1rem",
+          outline: "none",
+          cursor: disabled ? 'not-allowed' : 'text'
+        }}
+        aria-label="Select location"
+      />
+      {isOpen && !disabled && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          left: 0,
+          right: 0,
+          maxHeight: '180px',
+          overflowY: 'auto',
+          background: '#fff',
+          border: '1px solid #d2d7df',
+          borderRadius: '8px',
+          zIndex: 1000,
+          boxShadow: '0 3px 12px rgba(0,0,0,0.1)',
+        }}>
+          {filteredOptions.length === 0 ? (
+            <div style={{ padding: '10px', color: '#888' }}>No locations found</div>
+          ) : (
+            filteredOptions.map(opt => (
+              <div
+                key={opt.id}
+                onClick={() => handleSelect(opt.id)}
+                style={{
+                  padding: '10px 15px',
+                  cursor: 'pointer',
+                  backgroundColor: opt.id === value ? '#e7f3fb' : 'transparent'
+                }}
+                onMouseDown={e => e.preventDefault()}
+              >
+                {opt.id} - {opt.city}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AssignLocation = ({ sidebarOpen }) => {
   const [employees, setEmployees] = useState(mockEmployees);
@@ -53,7 +149,6 @@ const AssignLocation = ({ sidebarOpen }) => {
   const [formData, setFormData] = useState({
     locationId: '',
     assignmentDate: '',
-    role: '',
     notes: ''
   });
   const [viewingEmployee, setViewingEmployee] = useState(null);
@@ -63,7 +158,6 @@ const AssignLocation = ({ sidebarOpen }) => {
   const todayStr = new Date().toISOString().slice(0, 10);
   const highlightIfToday = (date) => date === todayStr ? { background: "#e2ffd8" } : {};
 
-  // Filter employees based on search term (id, name or email)
   const filteredEmployees = useMemo(() => {
     if (!searchTerm.trim()) return employees;
     const lower = searchTerm.toLowerCase();
@@ -74,14 +168,12 @@ const AssignLocation = ({ sidebarOpen }) => {
     );
   }, [employees, searchTerm]);
 
-  // Pagination: total pages and current page's employees
   const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / rowsPerPage));
   const pagedEmployees = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return filteredEmployees.slice(start, start + rowsPerPage);
   }, [filteredEmployees, currentPage]);
 
-  // Reset to first page when search term changes
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -91,7 +183,6 @@ const AssignLocation = ({ sidebarOpen }) => {
     setFormData({
       locationId: '',
       assignmentDate: '',
-      role: '',
       notes: ''
     });
   };
@@ -102,6 +193,9 @@ const AssignLocation = ({ sidebarOpen }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const city = mockLocations.find(loc => loc.id === formData.locationId)?.city || '-';
+    const assigningEmployeeRole = employees.find(emp => emp.employeeId === assigningEmployeeId)?.role || '';
+
     const updatedEmployees = employees.map(emp => {
       if (emp.employeeId === assigningEmployeeId) {
         return {
@@ -110,9 +204,9 @@ const AssignLocation = ({ sidebarOpen }) => {
             ...emp.assignedLocations,
             {
               locationId: formData.locationId,
-              city: '-', // You can add actual city lookup logic here
+              city,
               date: formData.assignmentDate,
-              role: formData.role,
+              role: assigningEmployeeRole,
               notes: formData.notes
             }
           ]
@@ -125,7 +219,6 @@ const AssignLocation = ({ sidebarOpen }) => {
     setFormData({
       locationId: '',
       assignmentDate: '',
-      role: '',
       notes: ''
     });
     alert('Location assigned!');
@@ -147,7 +240,7 @@ const AssignLocation = ({ sidebarOpen }) => {
     <div className={`main-content ${sidebarOpen ? '' : 'sidebar-closed'}`}>
       <div className="form-container">
         <h1>Assign Location to Employee</h1>
-        <br></br>
+        <br />
         {/* Search Bar */}
         <input
           type="text"
@@ -254,7 +347,7 @@ const AssignLocation = ({ sidebarOpen }) => {
           </table>
         </div>
 
-        {/* Pagination controls - outside table for always visible */}
+        {/* Pagination controls */}
         <div style={{ marginBottom: "20px", display: 'flex', justifyContent: 'center', gap: '16px' }}>
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -350,13 +443,20 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
                 onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
-              <input
-                name="locationId"
-                placeholder="Location ID"
+
+              <LocationSelect
                 value={formData.locationId}
+                onChange={id => setFormData({ ...formData, locationId: id })}
+                disabled={!formData.assignmentDate}
+                options={mockLocations}
+              />
+
+              <input
+                name="notes"
+                placeholder="Notes (optional)"
+                value={formData.notes}
                 onChange={handleChange}
                 disabled={!formData.assignmentDate}
-                required
                 style={{
                   flexBasis: "48%",
                   padding: "10px 12px",
@@ -371,63 +471,19 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
                 onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                required
-                disabled={!formData.assignmentDate}
-                style={{
-                  flexBasis: "48%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: !formData.assignmentDate ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
-                  fontSize: "1rem",
-                  outline: "none",
-                  transition: "border-color 0.3s ease",
-                  backgroundColor: !formData.assignmentDate ? '#f5f5f5' : '#fff',
-                  cursor: !formData.assignmentDate ? 'not-allowed' : 'pointer'
-                }}
-                onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
-                onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
-              >
-                <option value="">Select Role</option>
-                <option value="employee">Employee</option>
-                <option value="thirdparty">Third Party</option>
-              </select>
-              <input
-                name="notes"
-                placeholder="Notes (optional)"
-                value={formData.notes}
-                onChange={handleChange}
-                disabled={!formData.assignmentDate || !formData.role}
-                style={{
-                  flexBasis: "48%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: (!formData.assignmentDate || !formData.role) ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
-                  fontSize: "1rem",
-                  outline: "none",
-                  transition: "border-color 0.3s ease",
-                  backgroundColor: (!formData.assignmentDate || !formData.role) ? '#f5f5f5' : '#fff',
-                  cursor: (!formData.assignmentDate || !formData.role) ? 'not-allowed' : 'text'
-                }}
-                onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
-                onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
-              />
               <button
                 type="submit"
-                disabled={!(formData.locationId && formData.assignmentDate && formData.role)}
+                disabled={!(formData.locationId && formData.assignmentDate)}
                 style={{
                   flexBasis: "100%",
-                  backgroundColor: (formData.locationId && formData.assignmentDate && formData.role) ? "#2156b9" : "#b4b8bc",
+                  backgroundColor: (formData.locationId && formData.assignmentDate) ? "#2156b9" : "#b4b8bc",
                   color: "#fff",
                   padding: "12px 26px",
                   borderRadius: "8px",
                   border: "none",
                   fontWeight: 700,
                   fontSize: "1rem",
-                  cursor: (formData.locationId && formData.assignmentDate && formData.role) ? "pointer" : "not-allowed",
+                  cursor: (formData.locationId && formData.assignmentDate) ? "pointer" : "not-allowed",
                   transition: "background-color 0.3s ease",
                   marginTop: "10px"
                 }}
@@ -457,7 +513,7 @@ const AssignLocation = ({ sidebarOpen }) => {
         )}
 
         {/* Employee Details Modal */}
-        {viewingEmployee &&
+        {viewingEmployee && (
           <div style={{
             position: "fixed", zIndex: 3000,
             left: 0, top: 0, width: "100vw", height: "100vh",
@@ -526,7 +582,7 @@ const AssignLocation = ({ sidebarOpen }) => {
               </ul>
             </div>
           </div>
-        }
+        )}
       </div>
     </div>
   );
