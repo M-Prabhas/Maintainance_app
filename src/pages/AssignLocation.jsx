@@ -45,23 +45,32 @@ const mockEmployees = [
   }
 ];
 
-// Mock locations for dropdown
 const mockLocations = [
   { id: 'L001', city: 'Delhi' },
   { id: 'L002', city: 'Mumbai' },
   { id: 'L003', city: 'Pune' },
+  { id: 'L004', city: 'Kolkata' },
+  { id: 'L005', city: 'Chennai' },
 ];
 
 const rowsPerPage = 5;
 
-const LocationSelect = ({ value, onChange, disabled, options }) => {
+const LocationMultiPicker = ({ options, selectedIds, onAdd, onRemove, disabled }) => {
   const [searchText, setSearchText] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef();
 
+  const filteredOptions = useMemo(() => {
+    const lower = searchText.toLowerCase();
+    return options.filter(opt => 
+      (opt.city.toLowerCase().includes(lower) || opt.id.toLowerCase().includes(lower)) &&
+      !selectedIds.includes(opt.id)
+    );
+  }, [searchText, options, selectedIds]);
+
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
         setIsOpen(false);
         setSearchText('');
       }
@@ -70,75 +79,102 @@ const LocationSelect = ({ value, onChange, disabled, options }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selectedOption = options.find(opt => opt.id === value);
-
-  const filteredOptions = searchText.trim() === ''
-    ? options
-    : options.filter(opt =>
-        opt.id.toLowerCase().includes(searchText.toLowerCase()) ||
-        opt.city.toLowerCase().includes(searchText.toLowerCase())
-      );
-
   const handleSelect = (id) => {
-    onChange(id);
-    setIsOpen(false);
-    setSearchText('');
+    if (!disabled) {
+      onAdd(id);
+      setSearchText('');
+      setIsOpen(false);
+    }
   };
 
   return (
-    <div style={{ position: 'relative', flexBasis: "48%" }} ref={ref}>
+    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }} ref={ref}>
       <input
         type="text"
-        value={isOpen ? searchText : (selectedOption ? `${selectedOption.id} - ${selectedOption.city}` : '')}
+        value={isOpen ? searchText : ''}
         onChange={e => { setSearchText(e.target.value); setIsOpen(true); }}
         onFocus={() => setIsOpen(true)}
+        placeholder="Search locations"
         disabled={disabled}
-        placeholder="Select Location"
+        aria-label="Search locations"
         style={{
           width: '100%',
-          padding: "10px 12px",
-          borderRadius: "8px",
+          padding: '10px 12px',
+          borderRadius: '8px',
           border: disabled ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
-          fontSize: "1rem",
-          outline: "none",
+          fontSize: '1rem',
+          outline: 'none',
           cursor: disabled ? 'not-allowed' : 'text'
         }}
-        aria-label="Select location"
       />
-      {isOpen && !disabled && (
+      {isOpen && filteredOptions.length > 0 && !disabled && (
         <div style={{
           position: 'absolute',
           top: 'calc(100% + 4px)',
-          left: 0,
-          right: 0,
+          left: 0, right: 0,
           maxHeight: '180px',
           overflowY: 'auto',
-          background: '#fff',
+          backgroundColor: '#fff',
           border: '1px solid #d2d7df',
           borderRadius: '8px',
           zIndex: 1000,
-          boxShadow: '0 3px 12px rgba(0,0,0,0.1)',
+          boxShadow: '0 3px 12px rgba(0,0,0,0.1)'
         }}>
-          {filteredOptions.length === 0 ? (
-            <div style={{ padding: '10px', color: '#888' }}>No locations found</div>
-          ) : (
-            filteredOptions.map(opt => (
-              <div
-                key={opt.id}
-                onClick={() => handleSelect(opt.id)}
-                style={{
-                  padding: '10px 15px',
-                  cursor: 'pointer',
-                  backgroundColor: opt.id === value ? '#e7f3fb' : 'transparent'
-                }}
-                onMouseDown={e => e.preventDefault()}
-              >
-                {opt.id} - {opt.city}
-              </div>
-            ))
-          )}
+          {filteredOptions.map(opt => (
+            <div
+              key={opt.id}
+              onClick={() => handleSelect(opt.id)}
+              onMouseDown={e => e.preventDefault()} // prevent input blur
+              style={{
+                padding: '10px 15px',
+                cursor: 'pointer',
+                backgroundColor: '#fff'
+              }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e7f3fb'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}
+            >
+              {opt.id} - {opt.city}
+            </div>
+          ))}
         </div>
       )}
+      <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        {selectedIds.map(id => (
+          <span key={id} style={{
+            background: '#e2f0fc',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            color: '#2563eb'
+          }}>
+            {id}
+            <button
+              onClick={() => onRemove(id)}
+              aria-label={`Remove location ${id}`}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                marginLeft: '8px',
+                cursor: 'pointer',
+                fontWeight: '700',
+                fontSize: '1.2rem',
+                color: '#2563eb',
+                lineHeight: 1,
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center'
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#194291'}
+              onMouseLeave={e => e.currentTarget.style.color = '#2563eb'}
+            >
+              &times;
+            </button>
+          </span>
+        ))}
+      </div>
     </div>
   );
 };
@@ -147,11 +183,10 @@ const AssignLocation = ({ sidebarOpen }) => {
   const [employees, setEmployees] = useState(mockEmployees);
   const [assigningEmployeeId, setAssigningEmployeeId] = useState('');
   const [formData, setFormData] = useState({
-    locationId: '',
+    locationIds: [],
     assignmentDate: '',
     notes: ''
   });
-  const [viewingEmployee, setViewingEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -174,56 +209,80 @@ const AssignLocation = ({ sidebarOpen }) => {
     return filteredEmployees.slice(start, start + rowsPerPage);
   }, [filteredEmployees, currentPage]);
 
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
   const handleAssignClick = (employeeId) => {
     setAssigningEmployeeId(employeeId);
     setFormData({
-      locationId: '',
+      locationIds: [],
       assignmentDate: '',
       notes: ''
     });
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleAddLocation = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      locationIds: prev.locationIds.includes(id) ? prev.locationIds : [...prev.locationIds, id]
+    }));
+  };
+
+  const handleRemoveLocation = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      locationIds: prev.locationIds.filter(locId => locId !== id)
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const city = mockLocations.find(loc => loc.id === formData.locationId)?.city || '-';
+    if (!formData.assignmentDate) {
+      alert('Please select assignment date');
+      return;
+    }
+    if (formData.locationIds.length === 0) {
+      alert('Please select at least one location');
+      return;
+    }
+
     const assigningEmployeeRole = employees.find(emp => emp.employeeId === assigningEmployeeId)?.role || '';
+
+    const newLocations = formData.locationIds.map(id => {
+      const city = mockLocations.find(loc => loc.id === id)?.city || '-';
+      return {
+        locationId: id,
+        city,
+        date: formData.assignmentDate,
+        role: assigningEmployeeRole,
+        notes: formData.notes
+      };
+    });
 
     const updatedEmployees = employees.map(emp => {
       if (emp.employeeId === assigningEmployeeId) {
         return {
           ...emp,
-          assignedLocations: [
-            ...emp.assignedLocations,
-            {
-              locationId: formData.locationId,
-              city,
-              date: formData.assignmentDate,
-              role: assigningEmployeeRole,
-              notes: formData.notes
-            }
-          ]
+          assignedLocations: [...emp.assignedLocations, ...newLocations]
         };
       }
       return emp;
     });
+
     setEmployees(updatedEmployees);
     setAssigningEmployeeId('');
     setFormData({
-      locationId: '',
+      locationIds: [],
       assignmentDate: '',
       notes: ''
     });
-    alert('Location assigned!');
+    alert('Locations assigned!');
   };
 
+  // Pagination button styles reused from original
   const paginationButtonStyle = (disabled) => ({
     padding: '10px 20px',
     backgroundColor: disabled ? '#e0e0e0' : '#2563eb',
@@ -241,7 +300,6 @@ const AssignLocation = ({ sidebarOpen }) => {
       <div className="form-container">
         <h1>Assign Location to Employee</h1>
         <br />
-        {/* Search Bar */}
         <input
           type="text"
           placeholder="Search by name, employee ID or email"
@@ -255,12 +313,11 @@ const AssignLocation = ({ sidebarOpen }) => {
             marginBottom: '20px',
             borderRadius: '6px',
             border: '1.5px solid #cbd5e1',
-            outline: 'none',
+            outline: 'none'
           }}
           aria-label="Search Employees"
         />
 
-        {/* Employee Table */}
         <div style={{ overflowX: 'auto', margin: '0 0 16px 0' }}>
           <table
             style={{
@@ -291,16 +348,16 @@ const AssignLocation = ({ sidebarOpen }) => {
                   <tr key={emp.employeeId}>
                     <td style={{ padding: "8px" }}>
                       <span
-                        onClick={() => setViewingEmployee(emp)}
-                        style={{ color: "#2563eb", textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}
+                        onClick={() => alert("Use the Assign Location button to assign locations")}
+                        style={{ color: "#2563eb", textDecoration: "underline", cursor: "default", fontWeight: 700 }}
                       >
                         {emp.employeeId}
                       </span>
                     </td>
                     <td style={{ padding: "8px" }}>
                       <span
-                        onClick={() => setViewingEmployee(emp)}
-                        style={{ color: "#2156b9", cursor: "pointer", fontWeight: 700 }}
+                        onClick={() => alert("Use the Assign Location button to assign locations")}
+                        style={{ color: "#2156b9", cursor: "default", fontWeight: 700 }}
                       >
                         {emp.name}
                       </span>
@@ -353,9 +410,9 @@ const AssignLocation = ({ sidebarOpen }) => {
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             style={paginationButtonStyle(currentPage === 1)}
+            aria-label="Previous page"
             onMouseOver={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1e40af'; }}
             onMouseOut={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#2563eb'; }}
-            aria-label="Previous page"
           >
             Previous
           </button>
@@ -366,9 +423,9 @@ const AssignLocation = ({ sidebarOpen }) => {
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             style={paginationButtonStyle(currentPage === totalPages)}
+            aria-label="Next page"
             onMouseOver={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1e40af'; }}
             onMouseOut={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#2563eb'; }}
-            aria-label="Next page"
           >
             Next
           </button>
@@ -392,7 +449,7 @@ const AssignLocation = ({ sidebarOpen }) => {
               borderRadius: "14px",
               boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
               padding: "30px 36px",
-              maxWidth: "440px",
+              maxWidth: "480px",
               width: "100%",
               display: "flex",
               flexWrap: "wrap",
@@ -424,6 +481,7 @@ const AssignLocation = ({ sidebarOpen }) => {
               <h3 style={{ width: "100%", color: "#2563eb", marginTop: 0, fontWeight: "bold" }}>
                 Assign to {employees.find(emp => emp.employeeId === assigningEmployeeId)?.name} ({assigningEmployeeId})
               </h3>
+
               <input
                 type="date"
                 name="assignmentDate"
@@ -438,15 +496,16 @@ const AssignLocation = ({ sidebarOpen }) => {
                   border: "1.5px solid #d2d7df",
                   fontSize: "1rem",
                   outline: "none",
-                  transition: "border-color 0.3s ease",
+                  transition: "border-color 0.3s ease"
                 }}
                 onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
                 onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
 
-              <LocationSelect
-                value={formData.locationId}
-                onChange={id => setFormData({ ...formData, locationId: id })}
+              <LocationMultiPicker
+                selectedIds={formData.locationIds}
+                onAdd={handleAddLocation}
+                onRemove={handleRemoveLocation}
                 disabled={!formData.assignmentDate}
                 options={mockLocations}
               />
@@ -458,7 +517,7 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onChange={handleChange}
                 disabled={!formData.assignmentDate}
                 style={{
-                  flexBasis: "48%",
+                  flexBasis: "100%",
                   padding: "10px 12px",
                   borderRadius: "8px",
                   border: !formData.assignmentDate ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
@@ -466,24 +525,25 @@ const AssignLocation = ({ sidebarOpen }) => {
                   outline: "none",
                   transition: "border-color 0.3s ease",
                   backgroundColor: !formData.assignmentDate ? '#f5f5f5' : '#fff',
-                  cursor: !formData.assignmentDate ? 'not-allowed' : 'text'
+                  cursor: !formData.assignmentDate ? 'not-allowed' : 'text',
                 }}
                 onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
                 onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
               />
+
               <button
                 type="submit"
-                disabled={!(formData.locationId && formData.assignmentDate)}
+                disabled={!(formData.locationIds.length > 0 && formData.assignmentDate)}
                 style={{
                   flexBasis: "100%",
-                  backgroundColor: (formData.locationId && formData.assignmentDate) ? "#2156b9" : "#b4b8bc",
+                  backgroundColor: (formData.locationIds.length > 0 && formData.assignmentDate) ? "#2156b9" : "#b4b8bc",
                   color: "#fff",
                   padding: "12px 26px",
                   borderRadius: "8px",
                   border: "none",
                   fontWeight: 700,
                   fontSize: "1rem",
-                  cursor: (formData.locationId && formData.assignmentDate) ? "pointer" : "not-allowed",
+                  cursor: (formData.locationIds.length > 0 && formData.assignmentDate) ? "pointer" : "not-allowed",
                   transition: "background-color 0.3s ease",
                   marginTop: "10px"
                 }}
@@ -509,78 +569,6 @@ const AssignLocation = ({ sidebarOpen }) => {
                 Cancel
               </button>
             </form>
-          </div>
-        )}
-
-        {/* Employee Details Modal */}
-        {viewingEmployee && (
-          <div style={{
-            position: "fixed", zIndex: 3000,
-            left: 0, top: 0, width: "100vw", height: "100vh",
-            background: "rgba(0,0,0,0.23)",
-            display: "flex", alignItems: "center", justifyContent: "center"
-          }}>
-            <div style={{
-              background: "#fff",
-              borderRadius: "14px",
-              maxWidth: "450px",
-              minWidth: "310px",
-              boxShadow: "0 8px 40px rgba(46, 64, 120, .22)",
-              padding: "30px 29px 25px 29px",
-              position: "relative"
-            }}>
-              <button
-                style={{
-                  position: "absolute", top: 18, right: 22, background: "none",
-                  border: "none", fontSize: "1.6rem", cursor: "pointer", color: "#8c9be6"
-                }}
-                onClick={() => setViewingEmployee(null)}
-                aria-label="Close"
-              >&times;</button>
-              <h2 style={{ marginBottom: "5px", fontWeight: "bold", color: "#234e8c" }}>
-                {viewingEmployee.name} <span style={{ color: "#aaa", fontSize: "0.98rem" }}>({viewingEmployee.employeeId})</span>
-              </h2>
-              <div style={{ color: "#476fcc", fontSize: "0.98rem", marginBottom: "5px" }}>{viewingEmployee.email}</div>
-              <div style={{ marginBottom: "10px" }}><span style={{ color: "#757676", fontWeight: 600 }}>Role:</span> {viewingEmployee.role}</div>
-              <div style={{
-                background: "#f8fafc",
-                padding: "14px 12px",
-                borderRadius: "8px",
-                marginBottom: "18px",
-                border: "1px solid #d3e3fa"
-              }}>
-                <div style={{ fontWeight: 600, marginBottom: "5px", color: "#1c46a5" }}>KPIs</div>
-                <div style={{ display: "flex", gap: "26px", fontSize: "1.02rem", color: "#2b3499" }}>
-                  <div>
-                    <div style={{ fontSize: "1.23rem", fontWeight: 700, color: "#246653" }}>{viewingEmployee.kpi.completedTasks}</div>
-                    <div style={{ fontSize: "0.96rem", color: "#455" }}>Completed Tasks</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "1.23rem", fontWeight: 700, color: "#085fad" }}>{viewingEmployee.kpi.activeLocations}</div>
-                    <div style={{ fontSize: "0.96rem", color: "#455" }}>Active Locations</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "1.23rem", fontWeight: 700, color: "#c92531" }}>{viewingEmployee.kpi.overdueTasks}</div>
-                    <div style={{ fontSize: "0.96rem", color: "#455" }}>Overdue Tasks</div>
-                  </div>
-                </div>
-              </div>
-              <div style={{ fontWeight: 600, color: "#486cff", marginBottom: "7px" }}>Location Assignments</div>
-              <ul style={{ margin: 0, paddingLeft: "17px" }}>
-                {viewingEmployee.assignedLocations.length === 0 ? (
-                  <li style={{ color: "#888" }}>No previous assignments</li>
-                ) : (
-                  viewingEmployee.assignedLocations.map((loc, idx) => (
-                    <li key={loc.locationId + idx} style={highlightIfToday(loc.date)}>
-                      <span style={{ fontWeight: 600, color: "#5F27CD" }}>{loc.locationId}</span>
-                      {loc.city && <span> ({loc.city})</span>} — {loc.date}
-                      {loc.date === todayStr && <span style={{ color: "#15a503", fontWeight: 600 }}> (today)</span>}, role: {loc.role}
-                      {loc.notes && <> — <span>{loc.notes}</span></>}
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
           </div>
         )}
       </div>
