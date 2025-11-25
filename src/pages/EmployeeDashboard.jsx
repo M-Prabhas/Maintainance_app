@@ -105,6 +105,8 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
+
+  const totalStores = assignedStores.length;
   const locationsAssigned = todaysAssignments.length;
   const workCompleted = employeeHistory.length;
   const status = todaysAssignments.length === 0 ? "Free" : "Active";
@@ -134,6 +136,10 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
         <div className="kpi-section">
           <div className="kpi-grid">
             <div className="kpi-card">
+              <div className="kpi-content">
+                <h3>Total Stores</h3>
+                <div className="kpi-value">{totalStores}</div>
+              </div>
             </div>
             <div className="kpi-card">
               <div className="kpi-content">
