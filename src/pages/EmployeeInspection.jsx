@@ -73,9 +73,10 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         minHeight: '100vh',
         background: '#f6f8fc',
         display: 'flex',
+        marginLeft:'140px',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
-        paddingTop: '35px',
+        paddingTop: '15px',
         paddingBottom: '35px'
       }}
     >
