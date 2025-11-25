@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import { mockLocations, mockAppliances, mockStores } from '../data/mockData';
 
@@ -13,7 +12,6 @@ const allEmployees = [
 ];
 
 const ManagerDashboard = ({ sidebarOpen }) => {
-  const navigate = useNavigate();
   const [locationSearch, setLocationSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
@@ -21,7 +19,6 @@ const ManagerDashboard = ({ sidebarOpen }) => {
 
   // For modal: Download dummy report file
   const handleDownloadReport = (locId) => {
-    // Dummy file - update to whatever path/file you need
     const link = document.createElement('a');
     link.href = '/reports/dummy-location-report.pdf';
     link.download = `${locId}-inspection-report.pdf`;
@@ -69,11 +66,6 @@ const ManagerDashboard = ({ sidebarOpen }) => {
     setCurrentPage(1);
   };
 
-  const getStoreName = (storeId) => {
-    const store = mockStores.find(s => s.id === storeId);
-    return store ? store.name : 'N/A';
-  };
-
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
     try {
@@ -90,9 +82,6 @@ const ManagerDashboard = ({ sidebarOpen }) => {
     const unassignedEmployees = allEmployees.filter(emp => !emp.assignedLocations || emp.assignedLocations.length === 0).length;
     return { totalStores, locationsAssigned, employeesAssigned, unassignedEmployees };
   }, []);
-
-  const openModal = (locId) => setSelectedLocationId(locId);
-  const closeModal = () => setSelectedLocationId(null);
 
   return (
     <div>
@@ -201,7 +190,7 @@ const ManagerDashboard = ({ sidebarOpen }) => {
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(app.amcStartDate)}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(app.amcEndDate)}</td>
                     <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.amcStatus}</td>
-                                      </tr>
+                  </tr>
                 ))
               )}
             </tbody>
@@ -215,7 +204,7 @@ const ManagerDashboard = ({ sidebarOpen }) => {
             aria-modal="true"
             tabIndex={-1}
             className="modal-overlay"
-            onClick={closeModal}
+            onClick={() => setSelectedLocationId(null)}
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
@@ -240,7 +229,7 @@ const ManagerDashboard = ({ sidebarOpen }) => {
               }}
             >
               <button
-                onClick={closeModal}
+                onClick={() => setSelectedLocationId(null)}
                 aria-label="Close modal"
                 style={{
                   position: 'absolute',

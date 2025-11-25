@@ -15,8 +15,8 @@ const mockAppliances = [
   { id: 31, storeId: 3, name: 'Generator', model: 'GN-300', serialNumber: 'GN11111', category: 'Power', amcVendor: 'PowerMax' },
 ];
 
-const initialChecklist = { 
-  11: { isChecked: false, remarks: '', status: '' }, 
+const initialChecklist = {
+  11: { isChecked: false, remarks: '', status: '' },
   12: { isChecked: false, remarks: '', status: '' },
   21: { isChecked: false, remarks: '', status: '' },
   31: { isChecked: false, remarks: '', status: '' },
@@ -37,6 +37,8 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
     return initial;
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const updateChecklist = (applianceId, updates) => {
     setChecklist(prev => ({ ...prev, [applianceId]: { ...prev[applianceId], ...updates } }));
@@ -56,6 +58,49 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
     setTimeout(() => setShowSuccess(false), 2800);
   };
 
+  // Submit Report handler (simulate API call)
+  const handleSubmitReport = async () => {
+    setSubmitLoading(true);
+    setSubmitError('');
+    try {
+      // Simulate network request for demo, replace with actual fetch/axios call
+      await new Promise(res => setTimeout(res, 1500));
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      setSubmitError('Failed to submit report.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Download Report handler
+  const handleDownloadReport = () => {
+    const dataToExport = appliances.map(appliance => ({
+      applianceId: appliance.id,
+      name: appliance.name,
+      model: appliance.model,
+      serialNumber: appliance.serialNumber,
+      category: appliance.category,
+      amcVendor: appliance.amcVendor,
+      isChecked: checklist[appliance.id]?.isChecked,
+      remarks: checklist[appliance.id]?.remarks,
+      status: checklist[appliance.id]?.status,
+    }));
+
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${store?.name || 'inspection_report'}_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (!store) {
     return (
       <div style={{
@@ -73,7 +118,7 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         minHeight: '100vh',
         background: '#f6f8fc',
         display: 'flex',
-        marginLeft:'140px',
+        marginLeft: '130px',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         paddingTop: '15px',
@@ -128,6 +173,25 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
           </div>
         )}
 
+        {submitError && (
+          <div
+            style={{
+              color: '#b00020',
+              backgroundColor: '#f8d7da',
+              border: '1.5px solid #f5c6cb',
+              borderRadius: 6,
+              padding: '10px 20px',
+              marginBottom: 16,
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.07)',
+              userSelect: 'none',
+              fontSize: '1.03em'
+            }}
+          >
+            {submitError}
+          </div>
+        )}
+
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -136,6 +200,8 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         }}>
           {appliances.map(appliance => {
             const item = checklist[appliance.id];
+            const disabledFields = !item.isChecked;
+
             return (
               <div
                 key={appliance.id}
@@ -199,6 +265,7 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                   value={item.remarks}
                   onChange={e => handleRemarksChange(appliance.id, e.target.value)}
                   rows={3}
+                  disabled={disabledFields}
                   style={{
                     width: '100%',
                     resize: 'vertical',
@@ -209,9 +276,13 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                     boxShadow: 'inset 0 1px 3px rgba(25,118,210,0.07)',
                     marginBottom: 14,
                     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                    backgroundColor: disabledFields ? '#f0f0f0' : '#fff',
+                    cursor: disabledFields ? 'not-allowed' : 'text',
+                    outline: 'none',
+                    transition: 'border-color 0.3s ease',
                   }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#1976d2')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#e3e9f2')}
+                  onFocus={e => { if (!disabledFields) e.currentTarget.style.borderColor = '#1976d2' }}
+                  onBlur={e => e.currentTarget.style.borderColor = '#e3e9f2'}
                 />
                 <div style={{
                   display: 'flex',
@@ -220,6 +291,7 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                 }}>
                   <button
                     onClick={() => handleStatusChange(appliance.id, 'completed')}
+                    disabled={disabledFields}
                     style={{
                       flex: 1,
                       padding: '12px 0',
@@ -233,21 +305,23 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                         item.status === 'completed'
                           ? '0 4px 10px rgba(76, 175, 80, 0.23)'
                           : 'none',
-                      cursor: 'pointer',
+                      cursor: disabledFields ? 'not-allowed' : 'pointer',
                       userSelect: 'none',
-                      transition: 'background-color 0.2s'
+                      transition: 'background-color 0.2s',
+                      opacity: disabledFields ? 0.6 : 1,
                     }}
                     onMouseEnter={e => {
-                      if (item.status !== 'completed') e.currentTarget.style.backgroundColor = '#aed581';
+                      if (!disabledFields && item.status !== 'completed') e.currentTarget.style.backgroundColor = '#aed581';
                     }}
                     onMouseLeave={e => {
-                      if (item.status !== 'completed') e.currentTarget.style.backgroundColor = '#e0e0e0';
+                      if (!disabledFields && item.status !== 'completed') e.currentTarget.style.backgroundColor = '#e0e0e0';
                     }}
                   >
                     ✓ Completed
                   </button>
                   <button
                     onClick={() => handleStatusChange(appliance.id, 'hold')}
+                    disabled={disabledFields}
                     style={{
                       flex: 1,
                       padding: '12px 0',
@@ -261,15 +335,16 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                         item.status === 'hold'
                           ? '0 4px 10px rgba(245, 124, 0, 0.17)'
                           : 'none',
-                      cursor: 'pointer',
+                      cursor: disabledFields ? 'not-allowed' : 'pointer',
                       userSelect: 'none',
-                      transition: 'background-color 0.2s'
+                      transition: 'background-color 0.2s',
+                      opacity: disabledFields ? 0.6 : 1,
                     }}
                     onMouseEnter={e => {
-                      if (item.status !== 'hold') e.currentTarget.style.backgroundColor = '#ffb74d';
+                      if (!disabledFields && item.status !== 'hold') e.currentTarget.style.backgroundColor = '#ffb74d';
                     }}
                     onMouseLeave={e => {
-                      if (item.status !== 'hold') e.currentTarget.style.backgroundColor = '#e0e0e0';
+                      if (!disabledFields && item.status !== 'hold') e.currentTarget.style.backgroundColor = '#e0e0e0';
                     }}
                   >
                     ⏸ Hold
@@ -279,6 +354,51 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
             );
           })}
         </div>
+
+        {/* Submit Report and Download Report Buttons */}
+        <div style={{ marginTop: 24, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '12px' }}>
+          <button
+            onClick={handleSubmitReport}
+            disabled={submitLoading}
+            style={{
+              padding: '14px 40px',
+              fontSize: '1.15rem',
+              backgroundColor: submitLoading ? '#90caf9' : '#1976d2',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              cursor: submitLoading ? 'not-allowed' : 'pointer',
+              fontWeight: '700',
+              boxShadow: '0 4px 12px rgba(25,118,210,0.4)',
+              transition: 'background-color 0.3s',
+              userSelect: 'none',
+            }}
+          >
+            {submitLoading ? 'Submitting...' : 'Submit Report'}
+          </button>
+          <button
+            onClick={handleDownloadReport}
+            style={{
+              padding: '14px 40px',
+              fontSize: '1.15rem',
+              backgroundColor: '#1976d2',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: '700',
+              boxShadow: '0 4px 12px rgba(25,118,210,0.4)',
+              transition: 'background-color 0.3s',
+              userSelect: 'none',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1565c0')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1976d2')}
+          >
+            Download Report
+          </button>
+        </div>
+
+        {/* Back to Dashboard Button */}
         <button
           onClick={() => navigate('/employee')}
           style={{
