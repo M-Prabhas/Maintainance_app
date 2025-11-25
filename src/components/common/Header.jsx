@@ -13,7 +13,7 @@ const Header = () => {
 
   return (
     <header className="header">
-      <h2>AMC Management System</h2>
+      <h2>Medplus Maintainance Application</h2>
       <div className="header-right">
         <span className="user-info">
           {currentUser?.name} ({currentUser?.role})

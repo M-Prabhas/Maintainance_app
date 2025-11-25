@@ -17,7 +17,7 @@ const Sidebar = ({ userRole, isOpen, setIsOpen }) => {
   return (
     <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
-        <h2>{isOpen && 'AMC Manager'}</h2>
+        <h2>{isOpen && 'Menu Bar'}</h2>
         <button 
           className="toggle-btn" 
           onClick={() => setIsOpen(!isOpen)}

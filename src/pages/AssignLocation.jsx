@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 // Mock sample data
 const mockEmployees = [
@@ -9,7 +9,7 @@ const mockEmployees = [
     role: 'employee',
     assignedLocations: [
       { locationId: 'L001', city: 'Delhi', date: '2023-01-15', role: 'employee', notes: 'Main branch' },
-      { locationId: 'L003', city: 'Pune', date: new Date().toISOString().slice(0,10), role: 'employee', notes: 'Today assigned' }
+      { locationId: 'L003', city: 'Pune', date: new Date().toISOString().slice(0, 10), role: 'employee', notes: 'Today assigned' }
     ],
     kpi: {
       completedTasks: 12,
@@ -45,6 +45,8 @@ const mockEmployees = [
   }
 ];
 
+const rowsPerPage = 5; // number of rows per page for pagination
+
 const AssignLocation = ({ sidebarOpen }) => {
   const [employees, setEmployees] = useState(mockEmployees);
   const [assigningEmployeeId, setAssigningEmployeeId] = useState('');
@@ -55,11 +57,35 @@ const AssignLocation = ({ sidebarOpen }) => {
     notes: ''
   });
   const [viewingEmployee, setViewingEmployee] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const highlightIfToday = (date) => date === todayStr ? { background: "#e2ffd8" } : {};
 
-  // Show assignment modal
+  // Filter employees based on search term (id, name or email)
+  const filteredEmployees = useMemo(() => {
+    if (!searchTerm.trim()) return employees;
+    const lower = searchTerm.toLowerCase();
+    return employees.filter(emp =>
+      emp.name.toLowerCase().includes(lower) ||
+      emp.employeeId.toLowerCase().includes(lower) ||
+      emp.email.toLowerCase().includes(lower)
+    );
+  }, [employees, searchTerm]);
+
+  // Pagination: total pages and current page's employees
+  const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / rowsPerPage));
+  const pagedEmployees = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filteredEmployees.slice(start, start + rowsPerPage);
+  }, [filteredEmployees, currentPage]);
+
+  // Reset to first page when search term changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const handleAssignClick = (employeeId) => {
     setAssigningEmployeeId(employeeId);
     setFormData({
@@ -84,7 +110,7 @@ const AssignLocation = ({ sidebarOpen }) => {
             ...emp.assignedLocations,
             {
               locationId: formData.locationId,
-              city: '-', // Lookup can be added here
+              city: '-', // You can add actual city lookup logic here
               date: formData.assignmentDate,
               role: formData.role,
               notes: formData.notes
@@ -105,18 +131,53 @@ const AssignLocation = ({ sidebarOpen }) => {
     alert('Location assigned!');
   };
 
+  const paginationButtonStyle = (disabled) => ({
+    padding: '10px 20px',
+    backgroundColor: disabled ? '#e0e0e0' : '#2563eb',
+    color: disabled ? '#9e9e9e' : '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontWeight: 600,
+    boxShadow: disabled ? 'none' : '0 2px 8px rgba(37, 99, 235, 0.5)',
+    transition: 'background-color 0.3s ease'
+  });
+
   return (
     <div className={`main-content ${sidebarOpen ? '' : 'sidebar-closed'}`}>
       <div className="form-container">
         <h1>Assign Location to Employee</h1>
-        <div style={{ overflowX: "auto", margin: '16px 0 32px 0' }}>
-          <table style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            background: "#fff",
-            borderRadius: '10px',
-            boxShadow: '0 2px 10px rgba(44, 62, 80, 0.07)'
-          }}>
+        <br></br>
+        {/* Search Bar */}
+        <input
+          type="text"
+          placeholder="Search by name, employee ID or email"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          style={{
+            padding: '10px 15px',
+            width: '100%',
+            maxWidth: '400px',
+            fontSize: '1rem',
+            marginBottom: '20px',
+            borderRadius: '6px',
+            border: '1.5px solid #cbd5e1',
+            outline: 'none',
+          }}
+          aria-label="Search Employees"
+        />
+
+        {/* Employee Table */}
+        <div style={{ overflowX: 'auto', margin: '0 0 16px 0' }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              background: "#fff",
+              borderRadius: '10px',
+              boxShadow: '0 2px 10px rgba(44, 62, 80, 0.07)',
+            }}
+          >
             <thead style={{ background: "#e7f3fb" }}>
               <tr>
                 <th style={{ padding: "12px" }}>Employee ID</th>
@@ -128,67 +189,99 @@ const AssignLocation = ({ sidebarOpen }) => {
               </tr>
             </thead>
             <tbody>
-              {employees.map(emp => (
-                <tr key={emp.employeeId}>
-                  <td style={{ padding: "8px" }}>
-                    <span
-                      onClick={() => setViewingEmployee(emp)}
-                      style={{ color: "#2563eb", textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}
-                    >
-                      {emp.employeeId}
-                    </span>
-                  </td>
-                  <td style={{ padding: "8px" }}>
-                    <span
-                      onClick={() => setViewingEmployee(emp)}
-                      style={{ color: "#2156b9", cursor: "pointer", fontWeight: 700 }}
-                    >
-                      {emp.name}
-                    </span>
-                  </td>
-                  <td style={{ padding: "8px" }}>{emp.email}</td>
-                  <td style={{ padding: "8px" }}>{emp.role}</td>
-                  <td style={{ padding: "8px" }}>
-                    {emp.assignedLocations.length === 0
-                      ? <i style={{ color: "#888" }}>Not Assigned</i>
-                      : (
-                        <ul style={{ margin: 0, padding: 0 }}>
-                          {emp.assignedLocations.map((loc, idx) => (
-                            <li key={loc.locationId + idx} style={highlightIfToday(loc.date)}>
-                              <span style={{ fontWeight: 600 }}>{loc.locationId}</span>
-                              {loc.city && <span> ({loc.city})</span>} — {loc.date}
-                              {loc.date === todayStr && <span style={{ color: "#15a503", fontWeight: 600 }}> (today)</span>}, role: {loc.role}
-                              {loc.notes && <> — <span>{loc.notes}</span></>}
-                            </li>
-                          ))}
-                        </ul>
-                      )
-                    }
-                  </td>
-                  <td style={{ padding: "8px", textAlign: "center" }}>
-                    <button
-                      type="button"
-                      style={{
-                        padding: '7px 14px',
-                        borderRadius: '6px',
-                        background: '#2563eb',
-                        color: '#fff',
-                        border: 'none',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => handleAssignClick(emp.employeeId)}
-                    >
-                      Assign Location
-                    </button>
-                  </td>
+              {pagedEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>No employees found.</td>
                 </tr>
-              ))}
+              ) : (
+                pagedEmployees.map(emp => (
+                  <tr key={emp.employeeId}>
+                    <td style={{ padding: "8px" }}>
+                      <span
+                        onClick={() => setViewingEmployee(emp)}
+                        style={{ color: "#2563eb", textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}
+                      >
+                        {emp.employeeId}
+                      </span>
+                    </td>
+                    <td style={{ padding: "8px" }}>
+                      <span
+                        onClick={() => setViewingEmployee(emp)}
+                        style={{ color: "#2156b9", cursor: "pointer", fontWeight: 700 }}
+                      >
+                        {emp.name}
+                      </span>
+                    </td>
+                    <td style={{ padding: "8px" }}>{emp.email}</td>
+                    <td style={{ padding: "8px" }}>{emp.role}</td>
+                    <td style={{ padding: "8px" }}>
+                      {emp.assignedLocations.length === 0
+                        ? <i style={{ color: "#888" }}>Not Assigned</i>
+                        : (
+                          <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                            {emp.assignedLocations.map((loc, idx) => (
+                              <li key={loc.locationId + idx} style={highlightIfToday(loc.date)}>
+                                <span style={{ fontWeight: 600 }}>{loc.locationId}</span>
+                                {loc.city && <span> ({loc.city})</span>} — {loc.date}
+                                {loc.date === todayStr && <span style={{ color: "#15a503", fontWeight: 600 }}> (today)</span>}, role: {loc.role}
+                                {loc.notes && <> — <span>{loc.notes}</span></>}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                    </td>
+                    <td style={{ padding: "8px", textAlign: "center" }}>
+                      <button
+                        type="button"
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: '6px',
+                          background: '#2563eb',
+                          color: '#fff',
+                          border: 'none',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => handleAssignClick(emp.employeeId)}
+                      >
+                        Assign Location
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* Assignment form modal */}
+        {/* Pagination controls - outside table for always visible */}
+        <div style={{ marginBottom: "20px", display: 'flex', justifyContent: 'center', gap: '16px' }}>
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            style={paginationButtonStyle(currentPage === 1)}
+            onMouseOver={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1e40af'; }}
+            onMouseOut={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#2563eb'; }}
+            aria-label="Previous page"
+          >
+            Previous
+          </button>
+          <span style={{ alignSelf: 'center', fontWeight: '600' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            style={paginationButtonStyle(currentPage === totalPages)}
+            onMouseOver={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1e40af'; }}
+            onMouseOut={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#2563eb'; }}
+            aria-label="Next page"
+          >
+            Next
+          </button>
+        </div>
+
+        {/* Assignment Form Modal */}
         {assigningEmployeeId && (
           <div style={{
             position: "fixed",
@@ -225,7 +318,6 @@ const AssignLocation = ({ sidebarOpen }) => {
                   fontSize: "1.8rem",
                   cursor: "pointer",
                   color: "#6278f7",
-                  transition: "color 0.3s ease",
                   padding: 0,
                   lineHeight: 1
                 }}
@@ -364,7 +456,7 @@ const AssignLocation = ({ sidebarOpen }) => {
           </div>
         )}
 
-        {/* Employee details modal */}
+        {/* Employee Details Modal */}
         {viewingEmployee &&
           <div style={{
             position: "fixed", zIndex: 3000,
