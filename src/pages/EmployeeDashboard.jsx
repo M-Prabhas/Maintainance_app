@@ -105,8 +105,6 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
   };
-
-  const totalStores = assignedStores.length;
   const locationsAssigned = todaysAssignments.length;
   const workCompleted = employeeHistory.length;
   const status = todaysAssignments.length === 0 ? "Free" : "Active";
@@ -136,10 +134,6 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
         <div className="kpi-section">
           <div className="kpi-grid">
             <div className="kpi-card">
-              <div className="kpi-content">
-                <h3>Total Stores</h3>
-                <div className="kpi-value">{totalStores}</div>
-              </div>
             </div>
             <div className="kpi-card">
               <div className="kpi-content">
@@ -219,7 +213,7 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
                 <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Location</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Address</th>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Contact</th>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Phone</th>
