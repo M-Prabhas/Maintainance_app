@@ -33,7 +33,31 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 function AppRoutes() {
   const { isAuthenticated, currentUser } = useApp();
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // On desktop, default to open; on mobile, default to closed
+      if (!mobile) {
+        setSidebarOpen(true);
+      }
+    };
+
+    // Set initial state
+    if (window.innerWidth >= 768) {
+      setSidebarOpen(true);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleMenuToggle = () => {
+    setSidebarOpen(prev => !prev);
+  };
 
   return (
     <BrowserRouter>
@@ -44,7 +68,10 @@ function AppRoutes() {
           element={
             isAuthenticated ? (
               <div>
-                <Header />
+                <Header 
+                  onMenuToggle={handleMenuToggle} 
+                  showMenuButton={isMobile}
+                />
                 <div style={{ display: 'flex' }}>
                   <Sidebar
                     userRole={currentUser?.role || 'manager'}

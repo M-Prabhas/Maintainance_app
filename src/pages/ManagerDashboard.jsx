@@ -100,46 +100,46 @@ const ManagerDashboard = ({ sidebarOpen }) => {
           </div>
         </div>
 
-        <div className="location-search">
-          <h3>Search Location (ID or Name)</h3>
+        <div className="location-search" style={{ width: '100%', maxWidth: '400px' }}>
+          <h3 style={{ fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}>Search Location (ID or Name)</h3>
           <input
             type="text"
             placeholder="Type location ID, city or region"
             value={locationSearch}
             onChange={handleSearchChange}
             style={{
-              padding: '10px 14px',
-              fontSize: '1rem',
-              borderRadius: '6px',
+              padding: 'clamp(10px, 2vw, 14px)',
+              fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+              borderRadius: '8px',
               border: '1.5px solid #cbd5e1',
-              marginBottom: '20px',
-              width: '300px',
-              maxWidth: '100%',
+              marginBottom: '16px',
+              width: '100%',
+              minHeight: '44px',
             }}
             aria-label="Search locations"
           />
         </div>
 
-        <h2>Appliances List</h2>
-        <br />
-        <div className="stores-table-scroll" style={{ maxHeight: '430px', overflowY: 'auto' }}>
-          <table className="stores-table grouped-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>S.No</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Location ID</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Asset Code</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Name</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Model</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Serial Number</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Category</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC Vendor</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC Start</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC End</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC Status</th>
-              </tr>
-            </thead>
-            <tbody>
+        <h2 style={{ fontSize: 'clamp(1rem, 4vw, 1.5rem)', marginBottom: '16px' }}>Appliances List</h2>
+        <div className="stores-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div className="stores-table-scroll" style={{ maxHeight: '430px', overflowY: 'auto' }}>
+            <table className="stores-table grouped-table" style={{ borderCollapse: 'collapse', width: '100%', minWidth: '700px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>S.No</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>Location ID</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>Asset Code</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>Name</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>Model</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>Serial Number</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>Category</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>AMC Vendor</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>AMC Start</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>AMC End</th>
+                  <th style={{ padding: 'clamp(6px, 1.5vw, 12px)', border: '1px solid #ddd', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>AMC Status</th>
+                </tr>
+              </thead>
+              <tbody>
               {pagedData.length === 0 ? (
                 <tr>
                   <td colSpan="12" style={{ textAlign: 'center', padding: '20px' }}>
@@ -195,6 +195,7 @@ const ManagerDashboard = ({ sidebarOpen }) => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Modal with dummy inspection and download report button */}
@@ -211,8 +212,9 @@ const ManagerDashboard = ({ sidebarOpen }) => {
               backgroundColor: 'rgba(0,0,0,0.5)',
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 1000,
+              alignItems: 'flex-end',
+              zIndex: 2000,
+              padding: 0,
             }}
           >
             <div
@@ -220,11 +222,13 @@ const ManagerDashboard = ({ sidebarOpen }) => {
               onClick={e => e.stopPropagation()}
               style={{
                 backgroundColor: '#fff',
-                padding: '24px',
-                borderRadius: '8px',
-                maxWidth: '450px',
-                width: '90%',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                padding: 'clamp(16px, 4vw, 24px)',
+                borderRadius: '16px 16px 0 0',
+                maxWidth: '550px',
+                width: '100%',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
                 position: 'relative',
               }}
             >
@@ -237,25 +241,33 @@ const ManagerDashboard = ({ sidebarOpen }) => {
                   right: '12px',
                   border: 'none',
                   background: 'transparent',
-                  fontSize: '1.5rem',
+                  fontSize: 'clamp(1.5rem, 5vw, 2rem)',
                   cursor: 'pointer',
+                  minHeight: '44px',
+                  minWidth: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >&times;</button>
-              <h2>Inspection Details for {selectedLocationId}</h2>
-              <p><strong>Last Check Date:</strong> 2025-11-01</p>
-              <p><strong>Details:</strong> Routine inspection completed. No major issues found. All readings normal.</p>
-              <p><strong>Employees Visited:</strong> Dummy Employee</p>
+              <h2 style={{ fontSize: 'clamp(1rem, 4vw, 1.5rem)', marginBottom: '16px', paddingRight: '40px' }}>Inspection Details for {selectedLocationId}</h2>
+              <p style={{ marginBottom: '8px', fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}><strong>Last Check Date:</strong> 2025-11-01</p>
+              <p style={{ marginBottom: '8px', fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}><strong>Details:</strong> Routine inspection completed. No major issues found. All readings normal.</p>
+              <p style={{ marginBottom: '16px', fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}><strong>Employees Visited:</strong> Dummy Employee</p>
               <button
                 onClick={() => handleDownloadReport(selectedLocationId)}
                 style={{
-                  marginTop: '18px',
-                  padding: '10px 20px',
+                  marginTop: '8px',
+                  padding: 'clamp(10px, 2.5vw, 14px) clamp(16px, 4vw, 24px)',
                   backgroundColor: '#1976d2',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  width: '100%',
+                  minHeight: '44px',
+                  fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
                 }}
               >
                 Download Report
@@ -264,39 +276,45 @@ const ManagerDashboard = ({ sidebarOpen }) => {
           </div>
         )}
 
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: 'clamp(8px, 2vw, 16px)', flexWrap: 'wrap', padding: '0 8px' }}>
           <button
             onClick={() => setCurrentPage(p => p - 1)}
             disabled={currentPage === 1}
             style={{
-              padding: '10px 20px',
+              padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 20px)',
               backgroundColor: currentPage === 1 ? '#e0e0e0' : '#1976d2',
               color: currentPage === 1 ? '#9e9e9e' : '#fff',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
               fontWeight: '600',
               boxShadow: currentPage === 1 ? 'none' : '0 2px 5px rgba(25, 118, 210, 0.4)',
               transition: 'background-color 0.3s ease',
+              minHeight: '44px',
+              minWidth: '44px',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
             }}
             aria-label="Previous page"
           >Previous</button>
-          <span style={{ alignSelf: 'center', fontWeight: '600' }}>
+          <span style={{ alignSelf: 'center', fontWeight: '600', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage(p => p + 1)}
             disabled={currentPage === totalPages}
             style={{
-              padding: '10px 20px',
+              padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 20px)',
               backgroundColor: currentPage === totalPages ? '#e0e0e0' : '#1976d2',
               color: currentPage === totalPages ? '#9e9e9e' : '#fff',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
               fontWeight: '600',
               boxShadow: currentPage === totalPages ? 'none' : '0 2px 5px rgba(25, 118, 210, 0.4)',
               transition: 'background-color 0.3s ease',
+              minHeight: '44px',
+              minWidth: '44px',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
             }}
             aria-label="Next page"
           >Next</button>
