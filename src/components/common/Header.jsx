@@ -13,14 +13,14 @@ const Header = ({ onMenuToggle, showMenuButton = false }) => {
   };
 
   return (
-    <header className="header">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+    <header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, maxWidth: 'calc(100% - 160px)' }}>
         {showMenuButton && (
           <button 
             onClick={onMenuToggle}
             aria-label="Toggle menu"
             style={{
-              background: 'transparent',
+              background: '#f0f4f8',
               border: 'none',
               color: '#2c3e50',
               fontSize: '1.25rem',
@@ -33,6 +33,7 @@ const Header = ({ onMenuToggle, showMenuButton = false }) => {
               minWidth: '44px',
               borderRadius: '8px',
               flexShrink: 0,
+              position: 'relative',
               zIndex: 10,
             }}
           >
@@ -44,16 +45,21 @@ const Header = ({ onMenuToggle, showMenuButton = false }) => {
           overflow: 'hidden', 
           textOverflow: 'ellipsis', 
           whiteSpace: 'nowrap',
-          fontSize: 'clamp(0.75rem, 3vw, 1.2rem)',
-          flex: 1,
+          fontSize: 'clamp(0.7rem, 2.5vw, 1.2rem)',
           minWidth: 0,
         }}>
-          Medplus Maintainance Application
+          Medplus Maintainance App
         </h2>
       </div>
-      <div className="header-right">
-        <span className="user-info">
-          {currentUser?.name} ({currentUser?.role})
+      <div className="header-right" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span className="user-info" style={{ 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap',
+          maxWidth: 'clamp(60px, 15vw, 150px)',
+          fontSize: 'clamp(0.65rem, 2vw, 0.9rem)',
+        }}>
+          {currentUser?.name}
         </span>
         <button className="logout-btn" onClick={handleLogout}>
           Logout
