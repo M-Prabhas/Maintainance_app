@@ -118,11 +118,12 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         minHeight: '100vh',
         background: '#f6f8fc',
         display: 'flex',
-        marginLeft: '130px',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
-        paddingTop: '15px',
-        paddingBottom: '35px'
+        paddingTop: 'clamp(10px, 2vw, 15px)',
+        paddingBottom: 'clamp(20px, 5vw, 35px)',
+        paddingLeft: 'clamp(8px, 2vw, 16px)',
+        paddingRight: 'clamp(8px, 2vw, 16px)',
       }}
     >
       <div
@@ -131,28 +132,30 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
           maxWidth: '900px',
           width: '100%',
           backgroundColor: '#f9f9fb',
-          borderRadius: 18,
-          padding: '2.3rem 2.2rem',
+          borderRadius: 'clamp(12px, 3vw, 18px)',
+          padding: 'clamp(16px, 4vw, 2.3rem) clamp(12px, 3vw, 2.2rem)',
           boxShadow: '0 6px 32px rgba(25,118,210,0.10)',
           fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          transition: 'box-shadow 0.25s'
+          transition: 'box-shadow 0.25s',
+          margin: '0 auto',
         }}
       >
         <h1
           style={{
             fontWeight: 800,
-            fontSize: '2.2rem',
+            fontSize: 'clamp(1.25rem, 5vw, 2.2rem)',
             marginBottom: 0,
             color: '#1976d2',
-            letterSpacing: '1.5px',
+            letterSpacing: 'clamp(0.5px, 0.5vw, 1.5px)',
             textAlign: 'center',
             borderBottom: '2px solid #eeeeee',
             paddingBottom: 6,
+            wordBreak: 'break-word',
           }}
         >
           Appliance Inspection <span style={{ color: '#333' }}>- {store.name}</span>
         </h1>
-        <p style={{ fontSize: '1.13rem', color: '#555', marginBottom: 24, textAlign: 'center' }}>{store.address}</p>
+        <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.13rem)', color: '#555', marginBottom: 'clamp(16px, 4vw, 24px)', textAlign: 'center' }}>{store.address}</p>
 
         {showSuccess && (
           <div
@@ -195,7 +198,7 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: 26,
+          gap: 'clamp(12px, 3vw, 26px)',
           justifyContent: 'flex-start'
         }}>
           {appliances.map(appliance => {
@@ -207,24 +210,22 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                 key={appliance.id}
                 style={{
                   backgroundColor: '#fff',
-                  borderRadius: 14,
-                  padding: 22,
-                  minWidth: '300px',
-                  flex: '1 1 330px',
-                  marginBottom: 10,
+                  borderRadius: 'clamp(10px, 2.5vw, 14px)',
+                  padding: 'clamp(14px, 3vw, 22px)',
+                  minWidth: 'min(100%, 280px)',
+                  flex: '1 1 300px',
+                  marginBottom: 8,
                   boxShadow: '0 3px 22px rgba(25,118,210,0.09)',
                   transition: 'transform 0.18s, box-shadow 0.25s',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.017)')}
-                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
               >
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: 15,
+                    alignItems: 'flex-start',
+                    gap: 'clamp(10px, 2.5vw, 15px)',
                     marginBottom: 12
                   }}
                 >
@@ -234,28 +235,32 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
                     onChange={e => handleCheckboxChange(appliance.id, e.target.checked)}
                     style={{
                       cursor: 'pointer',
-                      width: 24,
-                      height: 24,
+                      width: 'clamp(20px, 5vw, 24px)',
+                      height: 'clamp(20px, 5vw, 24px)',
+                      minWidth: '20px',
+                      minHeight: '20px',
                       accentColor: '#1976d2',
+                      marginTop: '4px',
                     }}
                   />
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <h3
                       style={{
                         margin: 0,
-                        fontSize: '1.33rem',
+                        fontSize: 'clamp(1rem, 3vw, 1.33rem)',
                         color: '#222',
                         fontWeight: '700',
                         lineHeight: 1.25,
                         userSelect: 'none',
+                        wordBreak: 'break-word',
                       }}
                     >
                       {appliance.name}
                     </h3>
-                    <p style={{ margin: '5px 0', fontWeight: 500, color: '#7f8c8d', fontSize: '1.011em' }}>
+                    <p style={{ margin: '5px 0', fontWeight: 500, color: '#7f8c8d', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>
                       {appliance.model} <span style={{ fontWeight: 400, color: '#ccc' }}>&#8226;</span> {appliance.serialNumber}
                     </p>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '0.93rem', color: '#95a5a6', userSelect: 'none' }}>
+                    <p style={{ margin: '2px 0 0 0', fontSize: 'clamp(0.75rem, 2vw, 0.93rem)', color: '#95a5a6', userSelect: 'none' }}>
                       <strong>Category:</strong> {appliance.category} | <strong>AMC:</strong> {appliance.amcVendor}
                     </p>
                   </div>
@@ -356,13 +361,13 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         </div>
 
         {/* Submit Report and Download Report Buttons */}
-        <div style={{ marginTop: 24, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '12px' }}>
+        <div style={{ marginTop: 'clamp(16px, 4vw, 24px)', textAlign: 'center', display: 'flex', justifyContent: 'center', gap: 'clamp(8px, 2vw, 12px)', flexWrap: 'wrap' }}>
           <button
             onClick={handleSubmitReport}
             disabled={submitLoading}
             style={{
-              padding: '14px 40px',
-              fontSize: '1.15rem',
+              padding: 'clamp(10px, 2.5vw, 14px) clamp(20px, 5vw, 40px)',
+              fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)',
               backgroundColor: submitLoading ? '#90caf9' : '#1976d2',
               color: '#fff',
               border: 'none',
@@ -372,6 +377,9 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
               boxShadow: '0 4px 12px rgba(25,118,210,0.4)',
               transition: 'background-color 0.3s',
               userSelect: 'none',
+              minHeight: '48px',
+              flex: '1 1 auto',
+              minWidth: 'min(100%, 150px)',
             }}
           >
             {submitLoading ? 'Submitting...' : 'Submit Report'}
@@ -379,8 +387,8 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
           <button
             onClick={handleDownloadReport}
             style={{
-              padding: '14px 40px',
-              fontSize: '1.15rem',
+              padding: 'clamp(10px, 2.5vw, 14px) clamp(20px, 5vw, 40px)',
+              fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)',
               backgroundColor: '#1976d2',
               color: '#fff',
               border: 'none',
@@ -390,6 +398,9 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
               boxShadow: '0 4px 12px rgba(25,118,210,0.4)',
               transition: 'background-color 0.3s',
               userSelect: 'none',
+              minHeight: '48px',
+              flex: '1 1 auto',
+              minWidth: 'min(100%, 150px)',
             }}
             onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1565c0')}
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1976d2')}
@@ -402,20 +413,21 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
         <button
           onClick={() => navigate('/employee')}
           style={{
-            marginTop: 32,
-            padding: '14px 36px',
+            marginTop: 'clamp(20px, 5vw, 32px)',
+            padding: 'clamp(10px, 2.5vw, 14px) clamp(20px, 5vw, 36px)',
             backgroundColor: '#1976d2',
             color: '#fff',
             border: 'none',
-            borderRadius: 14,
-            fontSize: '1.13rem',
+            borderRadius: 'clamp(10px, 2.5vw, 14px)',
+            fontSize: 'clamp(0.9rem, 2.5vw, 1.13rem)',
             fontWeight: '700',
             cursor: 'pointer',
             boxShadow: '0 6px 16px rgba(25, 118, 210, 0.13)',
             userSelect: 'none',
             transition: 'background-color 0.22s',
             display: 'block',
-            marginLeft: 'auto'
+            width: '100%',
+            minHeight: '48px',
           }}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1565c0')}
           onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1976d2')}

@@ -163,11 +163,11 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '12px', marginBottom: '14px', marginTop: '18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 'clamp(6px, 2vw, 12px)', marginBottom: '14px', marginTop: '18px', flexWrap: 'wrap' }}>
           <button
             style={{
-              padding: '10px 36px',
-              fontSize: '1.1rem',
+              padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 36px)',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1.1rem)',
               borderRadius: 32,
               cursor: 'pointer',
               backgroundColor: activeTab === 'today' ? '#1976d2' : '#ddeafc',
@@ -176,16 +176,18 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
               outline: 'none',
               fontWeight: activeTab === 'today' ? 700 : 600,
               boxShadow: activeTab === 'today' ? '0 4px 15px rgba(25, 118, 210, 0.17)' : 'none',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              minHeight: '44px',
+              whiteSpace: 'nowrap',
             }}
             onClick={() => setActiveTab('today')}
           >
-            📍 Today's Assignments ({todaysAssignments.length})
+            📍 Today's ({todaysAssignments.length})
           </button>
           <button
             style={{
-              padding: '10px 34px',
-              fontSize: '1.1rem',
+              padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 34px)',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1.1rem)',
               borderRadius: 32,
               cursor: 'pointer',
               backgroundColor: activeTab === 'history' ? '#1976d2' : '#ddeafc',
@@ -194,11 +196,13 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
               outline: 'none',
               fontWeight: activeTab === 'history' ? 700 : 600,
               boxShadow: activeTab === 'history' ? '0 4px 15px rgba(25, 118, 210, 0.17)' : 'none',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              minHeight: '44px',
+              whiteSpace: 'nowrap',
             }}
             onClick={() => setActiveTab('history')}
           >
-            📜 Work History ({employeeHistory.length})
+            📜 History ({employeeHistory.length})
           </button>
         </div>
 
@@ -206,24 +210,27 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
         <div
           style={{
             overflowY: 'auto',
-            maxHeight: 'calc(100vh - 360px)', // Adjust for pagination controls height
-            padding: '18px 10px',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            maxHeight: 'calc(100vh - 380px)',
+            padding: 'clamp(10px, 2.5vw, 18px)',
             borderRadius: '8px',
             backgroundColor: '#fff',
-            margin: '0 10px',
+            margin: '0',
             boxShadow: '0 2px 8px rgba(0,0,0,0.045)',
           }}
         >
           {activeTab === 'today' && (
             <>{todaysAssignments.length > 0 ? (
-                <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'clamp(0.75rem, 2vw, 1.06rem)', minWidth: '500px' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Address</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Contact</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Phone</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Action</th>
+                      <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Store</th>
+                      <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Address</th>
+                      <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Contact</th>
+                      <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Phone</th>
+                      <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -237,13 +244,13 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
                         onKeyDown={e => e.key === 'Enter' && handleStoreClick(store.id)}
                         style={{ cursor: 'pointer' }}
                       >
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.name}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.address}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactPerson}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactNumber}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                        <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{store.name}</td>
+                        <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{store.address}</td>
+                        <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{store.contactPerson}</td>
+                        <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{store.contactNumber}</td>
+                        <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>
                           <button
-                            style={{ padding: '8px 16px', backgroundColor: '#1976d2', color: '#fff', border: 'none', borderRadius: 12, fontWeight: '600', cursor: 'pointer' }}
+                            style={{ padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 2.5vw, 16px)', backgroundColor: '#1976d2', color: '#fff', border: 'none', borderRadius: 12, fontWeight: '600', cursor: 'pointer', minHeight: '44px', fontSize: 'clamp(0.75rem, 2vw, 0.9rem)' }}
                             onClick={e => { e.stopPropagation(); handleStoreClick(store.id); }}
                           >
                             Inspect
@@ -253,8 +260,9 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
                     ))}
                   </tbody>
                 </table>
+                </div>
               ) : (
-                <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
+                <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 'clamp(16px, 4vw, 28px)', fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>
                   No assignments scheduled for today.
                 </div>
               )}
@@ -263,39 +271,39 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
 
           {activeTab === 'history' && (
             <>
-                <div>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 {employeeHistory.length > 0 ? (
-                  <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
+                  <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'clamp(0.75rem, 2vw, 1.06rem)', minWidth: '500px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Date</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Duration</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Status</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Remarks</th>
+                        <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Store</th>
+                        <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Date</th>
+                        <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Duration</th>
+                        <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Status</th>
+                        <th style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>Remarks</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pagedEmployeeHistory.map(entry => (
                         <tr key={entry.id}>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.storeName}</td>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(entry.date)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.duration}</td>
+                          <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{entry.storeName}</td>
+                          <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{formatDate(entry.date)}</td>
+                          <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{entry.duration}</td>
                           <td style={{
                             fontWeight: 600,
                             color: entry.status === 'completed' ? '#4caf50' : '#f57c00',
-                            padding: '8px',
+                            padding: 'clamp(6px, 1.5vw, 10px)',
                             border: '1px solid #ddd',
                           }}>
                             {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                           </td>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.remarks}</td>
+                          <td style={{ padding: 'clamp(6px, 1.5vw, 10px)', border: '1px solid #ddd' }}>{entry.remarks}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 ) : (
-                  <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
+                  <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 'clamp(16px, 4vw, 28px)', fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>
                     No maintenance history found.
                   </div>
                 )}
@@ -305,11 +313,15 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
         </div>
 
         {/* Pagination Controls - always visible outside scrollable container */}
-        <div style={{ marginTop: '12px', marginBottom: '24px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+        <div style={{ marginTop: '12px', marginBottom: '24px', display: 'flex', justifyContent: 'center', gap: 'clamp(8px, 2vw, 16px)', flexWrap: 'wrap', padding: '0 8px' }}>
           <button
             onClick={() => activeTab === 'today' ? setCurrentPageToday(p => Math.max(1, p - 1)) : setCurrentPageHistory(p => Math.max(1, p - 1))}
             disabled={(activeTab === 'today' ? currentPageToday : currentPageHistory) === 1}
-            style={paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === 1)}
+            style={{
+              ...paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === 1),
+              minHeight: '44px',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
+            }}
             onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1565c0'; }}
             onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1976d2'; }}
             aria-label="Previous page"
@@ -317,14 +329,18 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
             Previous
           </button>
 
-          <span style={{ alignSelf: 'center', fontWeight: '600' }}>
+          <span style={{ alignSelf: 'center', fontWeight: '600', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>
             Page {activeTab === 'today' ? currentPageToday : currentPageHistory} of {activeTab === 'today' ? totalTodayPages : totalHistoryPages}
           </span>
 
           <button
             onClick={() => activeTab === 'today' ? setCurrentPageToday(p => Math.min(totalTodayPages, p + 1)) : setCurrentPageHistory(p => Math.min(totalHistoryPages, p + 1))}
             disabled={(activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages)}
-            style={paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages))}
+            style={{
+              ...paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages)),
+              minHeight: '44px',
+              fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
+            }}
             onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1565c0'; }}
             onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1976d2'; }}
             aria-label="Next page"

@@ -437,23 +437,25 @@ const AssignLocation = ({ sidebarOpen }) => {
             position: "fixed",
             top: 0, left: 0,
             width: "100vw", height: "100vh",
-            background: "rgba(0,0,0,0.25)",
+            background: "rgba(0,0,0,0.4)",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
             justifyContent: "center",
             zIndex: 2000,
-            padding: "20px"
+            padding: 0
           }}>
             <form onSubmit={handleSubmit} style={{
               background: "#fff",
-              borderRadius: "14px",
-              boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
-              padding: "30px 36px",
-              maxWidth: "480px",
+              borderRadius: "20px 20px 0 0",
+              boxShadow: "0 -4px 30px rgba(0, 0, 0, 0.15)",
+              padding: "clamp(20px, 4vw, 30px)",
+              maxWidth: "550px",
               width: "100%",
+              maxHeight: "85vh",
+              overflowY: "auto",
               display: "flex",
               flexWrap: "wrap",
-              gap: "16px",
+              gap: "clamp(12px, 2.5vw, 16px)",
               position: "relative",
               fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
             }}>
@@ -461,15 +463,20 @@ const AssignLocation = ({ sidebarOpen }) => {
                 type="button"
                 style={{
                   position: "absolute",
-                  top: 14,
-                  right: 18,
+                  top: 12,
+                  right: 12,
                   background: "none",
                   border: "none",
-                  fontSize: "1.8rem",
+                  fontSize: "clamp(1.5rem, 5vw, 2rem)",
                   cursor: "pointer",
                   color: "#6278f7",
                   padding: 0,
-                  lineHeight: 1
+                  lineHeight: 1,
+                  minHeight: "44px",
+                  minWidth: "44px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
                 onMouseEnter={e => e.currentTarget.style.color = "#294bb5"}
                 onMouseLeave={e => e.currentTarget.style.color = "#6278f7"}
@@ -478,7 +485,7 @@ const AssignLocation = ({ sidebarOpen }) => {
               >
                 &times;
               </button>
-              <h3 style={{ width: "100%", color: "#2563eb", marginTop: 0, fontWeight: "bold" }}>
+              <h3 style={{ width: "100%", color: "#2563eb", marginTop: 0, fontWeight: "bold", fontSize: "clamp(1rem, 3.5vw, 1.25rem)", paddingRight: "40px" }}>
                 Assign to {employees.find(emp => emp.employeeId === assigningEmployeeId)?.name} ({assigningEmployeeId})
               </h3>
 
@@ -490,13 +497,14 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onChange={handleChange}
                 required
                 style={{
-                  flexBasis: "48%",
-                  padding: "10px 12px",
+                  flex: "1 1 100%",
+                  padding: "clamp(10px, 2.5vw, 14px)",
                   borderRadius: "8px",
                   border: "1.5px solid #d2d7df",
-                  fontSize: "1rem",
+                  fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
                   outline: "none",
-                  transition: "border-color 0.3s ease"
+                  transition: "border-color 0.3s ease",
+                  minHeight: "44px",
                 }}
                 onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
                 onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
@@ -517,15 +525,16 @@ const AssignLocation = ({ sidebarOpen }) => {
                 onChange={handleChange}
                 disabled={!formData.assignmentDate}
                 style={{
-                  flexBasis: "100%",
-                  padding: "10px 12px",
+                  flex: "1 1 100%",
+                  padding: "clamp(10px, 2.5vw, 14px)",
                   borderRadius: "8px",
                   border: !formData.assignmentDate ? '1.5px solid #ccc' : '1.5px solid #d2d7df',
-                  fontSize: "1rem",
+                  fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
                   outline: "none",
                   transition: "border-color 0.3s ease",
                   backgroundColor: !formData.assignmentDate ? '#f5f5f5' : '#fff',
                   cursor: !formData.assignmentDate ? 'not-allowed' : 'text',
+                  minHeight: "44px",
                 }}
                 onFocus={e => e.currentTarget.style.borderColor = "#2563eb"}
                 onBlur={e => e.currentTarget.style.borderColor = "#d2d7df"}
@@ -535,17 +544,18 @@ const AssignLocation = ({ sidebarOpen }) => {
                 type="submit"
                 disabled={!(formData.locationIds.length > 0 && formData.assignmentDate)}
                 style={{
-                  flexBasis: "100%",
+                  flex: "1 1 100%",
                   backgroundColor: (formData.locationIds.length > 0 && formData.assignmentDate) ? "#2156b9" : "#b4b8bc",
                   color: "#fff",
-                  padding: "12px 26px",
+                  padding: "clamp(12px, 3vw, 16px)",
                   borderRadius: "8px",
                   border: "none",
                   fontWeight: 700,
-                  fontSize: "1rem",
+                  fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
                   cursor: (formData.locationIds.length > 0 && formData.assignmentDate) ? "pointer" : "not-allowed",
                   transition: "background-color 0.3s ease",
-                  marginTop: "10px"
+                  marginTop: "8px",
+                  minHeight: "48px",
                 }}
               >
                 Assign Location
@@ -554,16 +564,16 @@ const AssignLocation = ({ sidebarOpen }) => {
                 type="button"
                 onClick={() => setAssigningEmployeeId('')}
                 style={{
-                  flexBasis: "100%",
+                  flex: "1 1 100%",
                   background: "#fff",
                   color: "#2156b9",
-                  padding: "12px 26px",
+                  padding: "clamp(12px, 3vw, 16px)",
                   borderRadius: "8px",
                   border: "1.5px solid #a3b6e6",
                   fontWeight: 600,
-                  fontSize: "1rem",
+                  fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
                   cursor: "pointer",
-                  marginTop: "8px"
+                  minHeight: "48px",
                 }}
               >
                 Cancel
