@@ -26,7 +26,7 @@ const StoreDetails = () => {
     const headers = ['Appliance Name', 'Model', 'Serial Number', 'Checked', 'Status', 'Remarks', 'Last Updated'];
     const csvContent = [
       headers.join(','),
-      ...reportData.map(row => 
+      ...reportData.map(row =>
         `"${row.name}","${row.model}","${row.serial}","${row.checked}","${row.status}","${row.remarks}","${row.lastUpdated}"`
       )
     ].join('\n');
@@ -50,17 +50,17 @@ const StoreDetails = () => {
           Download Report (CSV)
         </button>
       </div>
-      
+
       <div className="appliances-list">
         {appliances.map(appliance => {
           const checklistItem = checklist[appliance.id];
           return (
             <div key={appliance.id} className="appliance-card">
               <div className="appliance-info">
-                <input 
-                  type="checkbox" 
-                  checked={checklistItem.isChecked} 
-                  disabled 
+                <input
+                  type="checkbox"
+                  checked={checklistItem.isChecked}
+                  disabled
                 />
                 <div>
                   <h3>{appliance.name}</h3>
@@ -88,7 +88,7 @@ const StoreDetails = () => {
           );
         })}
       </div>
-      
+
       <button className="btn-back" onClick={() => navigate('/manager')}>
         Back to Dashboard
       </button>

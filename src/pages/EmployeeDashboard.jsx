@@ -4,7 +4,6 @@ import { useApp } from '../context/AppContext';
 import { FaStore, FaClipboardList, FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { mockLocations } from '../data/mockData';
 
 // Fix for default Leaflet icon issues
