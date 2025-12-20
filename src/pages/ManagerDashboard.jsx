@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import Header from '../components/common/Header';
+
 import { useApp } from '../context/AppContext'; // Import useApp to access context
 import { FaStore, FaMapMarkerAlt, FaUsers, FaUserClock } from 'react-icons/fa';
 import { mockLocations, mockAppliances, mockStores } from '../data/mockData';
@@ -13,7 +13,7 @@ const allEmployees = [
   { employeeId: 'E002', name: 'Priya Mehra', assignedLocations: [] }
 ];
 
-const ManagerDashboard = ({ sidebarOpen }) => {
+const ManagerDashboard = () => {
   const [locationSearch, setLocationSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLocationId, setSelectedLocationId] = useState(null);

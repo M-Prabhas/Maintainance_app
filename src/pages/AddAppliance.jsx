@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { mockLocations } from '../data/mockData';
 
-const AddAppliance = ({ sidebarOpen }) => {
+const AddAppliance = () => {
   const [formData, setFormData] = useState({
     name: '',
     model: '',

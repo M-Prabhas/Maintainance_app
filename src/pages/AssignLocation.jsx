@@ -415,7 +415,7 @@ const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
 
 
 
-const AssignLocation = ({ sidebarOpen }) => {
+const AssignLocation = () => {
   const [employees, setEmployees] = useState(getInitialEmployees());
   const [assigningEmployeeId, setAssigningEmployeeId] = useState('');
   const [formData, setFormData] = useState({

@@ -1,7 +1,7 @@
 import React from 'react';
 import { notifications as initialNotifications } from '../data/mockData';
 
-const Notifications = ({ sidebarOpen }) => {
+const Notifications = () => {
   const notifications = initialNotifications;
 
   const formatTime = (timestamp) => {

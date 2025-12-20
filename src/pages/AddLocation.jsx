@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const AddLocation = ({ sidebarOpen }) => {
+const AddLocation = () => {
   const [formData, setFormData] = useState({
     city: '',
     region: '',
@@ -8,7 +8,7 @@ const AddLocation = ({ sidebarOpen }) => {
     address: '',
     postalCode: '',
     contactPerson: '',
-    contactPerson: '',
+
     phone: '',
     lat: '',
     lng: ''

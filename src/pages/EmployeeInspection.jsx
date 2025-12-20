@@ -23,7 +23,7 @@ const mockSubTasks = [
   'Verify Control Panel Functionality'
 ];
 
-const EmployeeInspection = ({ sidebarOpen = true }) => {
+const EmployeeInspection = () => {
   const { storeId } = useParams();
   const navigate = useNavigate();
 
@@ -48,7 +48,7 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+
 
   const updateChecklist = (applianceId, updates) => {
     setChecklist(prev => ({ ...prev, [applianceId]: { ...prev[applianceId], ...updates } }));
@@ -97,13 +97,13 @@ const EmployeeInspection = ({ sidebarOpen = true }) => {
 
   const handleSubmitReport = async () => {
     setSubmitLoading(true);
-    setSubmitError('');
+
     try {
       await new Promise(res => setTimeout(res, 1500));
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      setSubmitError('Failed to submit report.');
+
     } finally {
       setSubmitLoading(false);
     }

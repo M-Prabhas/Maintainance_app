@@ -57,38 +57,7 @@ const mockAssignedStores = [
   { id: 3, name: 'West End Store', address: '789 West Ave, Villagetown', contactPerson: 'Alan Brown', contactNumber: '9988776655', locationId: 'indelcp' },
 ];
 
-const mockManagementHistory = [
-  {
-    id: 101,
-    storeId: 1,
-    storeName: 'Central Mall',
-    employeeId: 1001,
-    date: new Date().toISOString(),
-    duration: '2.5',
-    status: 'completed',
-    remarks: 'Replaced filters, checked wiring.',
-  },
-  {
-    id: 102,
-    storeId: 2,
-    storeName: 'Eastside Plaza',
-    employeeId: 1001,
-    date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
-    duration: '1.0',
-    status: 'completed',
-    remarks: 'Inspection done, all good.',
-  },
-  {
-    id: 103,
-    storeId: 3,
-    storeName: 'West End Store',
-    employeeId: 1001,
-    date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
-    duration: '3.0',
-    status: 'hold',
-    remarks: 'Waiting for part replacement.',
-  },
-];
+
 
 const currentUser = {
   id: 1001,
@@ -186,7 +155,7 @@ const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
   );
 };
 
-const EmployeeDashboard = ({ sidebarOpen }) => {
+const EmployeeDashboard = () => {
   const navigate = useNavigate();
   const { tasks } = useApp(); // Get tasks from context
 
