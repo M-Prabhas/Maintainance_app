@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Header from '../components/common/Header';
+import { useApp } from '../context/AppContext'; // Import useApp to access context
+import { FaStore, FaMapMarkerAlt, FaUsers, FaUserClock } from 'react-icons/fa';
 import { mockLocations, mockAppliances, mockStores } from '../data/mockData';
 
 const assignedEmployees = [
@@ -25,6 +27,21 @@ const ManagerDashboard = ({ sidebarOpen }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const { tasks, approveTask } = useApp();
+
+  // Use a more robust check or fallback
+  const currentTask = tasks.find(t => t.storeName.toLowerCase().includes(selectedLocationId?.toLowerCase()) || t.id === 101);
+  const isApproved = currentTask?.approved;
+  const isCompleted = currentTask?.status === 'completed';
+
+  const handleApprove = () => {
+    if (currentTask) {
+      approveTask(currentTask.id);
+      alert(`Inspection for ${selectedLocationId} approved!`);
+      setSelectedLocationId(null);
+    }
   };
 
   const appliancesFiltered = useMemo(() => {
@@ -85,18 +102,113 @@ const ManagerDashboard = ({ sidebarOpen }) => {
 
   return (
     <div>
-      <Header />
-      <main className={`main-content dashboard ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+
+      <div className="dashboard">
         <div className="dashboard-header">
           <h1>Manager Dashboard</h1>
         </div>
 
         <div className="kpi-section">
           <div className="kpi-grid">
-            <div className="kpi-card"><div className="kpi-content"><h3 className="kpi-label">Total Stores</h3><div className="kpi-value">{kpis.totalStores}</div></div></div>
-            <div className="kpi-card"><div className="kpi-content"><h3 className="kpi-label">Locations Assigned</h3><div className="kpi-value">{kpis.locationsAssigned}</div></div></div>
-            <div className="kpi-card"><div className="kpi-content"><h3 className="kpi-label">Employees Assigned</h3><div className="kpi-value">{kpis.employeesAssigned}</div></div></div>
-            <div className="kpi-card"><div className="kpi-content"><h3 className="kpi-label">Employees Free</h3><div className="kpi-value">{kpis.unassignedEmployees}</div></div></div>
+            {/* KPI 1: Total Stores */}
+            <div className="kpi-card">
+              <div className="kpi-top-row">
+                <div className="kpi-content">
+                  <h3>Total Locations</h3>
+                  <div className="kpi-value">{kpis.totalStores}</div>
+                </div>
+                <div className="kpi-icon" style={{ backgroundColor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}>
+                  <FaStore />
+                </div>
+              </div>
+              <div className="kpi-progress-container">
+                <div className="kpi-progress-track">
+                  <div className="kpi-progress-fill" style={{ width: '100%', backgroundColor: '#1976d2' }}></div>
+                </div>
+                <div className="kpi-progress-text">100% of inventory</div>
+              </div>
+            </div>
+
+            {/* KPI 2: Locations Assigned */}
+            <div className="kpi-card">
+              <div className="kpi-top-row">
+                <div className="kpi-content">
+                  <h3>Locations Assigned</h3>
+                  <div className="kpi-value">{kpis.locationsAssigned}</div>
+                </div>
+                <div className="kpi-icon" style={{ backgroundColor: 'rgba(255, 152, 0, 0.1)', color: '#f57c00' }}>
+                  <FaMapMarkerAlt />
+                </div>
+              </div>
+              <div className="kpi-progress-container">
+                <div className="kpi-progress-track">
+                  <div
+                    className="kpi-progress-fill"
+                    style={{
+                      width: `${kpis.totalStores ? (kpis.locationsAssigned / kpis.totalStores) * 100 : 0}%`,
+                      backgroundColor: '#f57c00'
+                    }}
+                  ></div>
+                </div>
+                <div className="kpi-progress-text">
+                  {kpis.totalStores ? Math.round((kpis.locationsAssigned / kpis.totalStores) * 100) : 0}% of total
+                </div>
+              </div>
+            </div>
+
+            {/* KPI 3: Employees Assigned */}
+            <div className="kpi-card">
+              <div className="kpi-top-row">
+                <div className="kpi-content">
+                  <h3>Employees Assigned</h3>
+                  <div className="kpi-value">{kpis.employeesAssigned}</div>
+                </div>
+                <div className="kpi-icon" style={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', color: '#4caf50' }}>
+                  <FaUsers />
+                </div>
+              </div>
+              <div className="kpi-progress-container">
+                <div className="kpi-progress-track">
+                  <div
+                    className="kpi-progress-fill"
+                    style={{
+                      width: `${allEmployees.length ? (kpis.employeesAssigned / allEmployees.length) * 100 : 0}%`,
+                      backgroundColor: '#4caf50'
+                    }}
+                  ></div>
+                </div>
+                <div className="kpi-progress-text">
+                  {allEmployees.length ? Math.round((kpis.employeesAssigned / allEmployees.length) * 100) : 0}% of workforce
+                </div>
+              </div>
+            </div>
+
+            {/* KPI 4: Employees Free */}
+            <div className="kpi-card">
+              <div className="kpi-top-row">
+                <div className="kpi-content">
+                  <h3>Employees Available</h3>
+                  <div className="kpi-value">{kpis.unassignedEmployees}</div>
+                </div>
+                <div className="kpi-icon" style={{ backgroundColor: 'rgba(244, 67, 54, 0.1)', color: '#f44336' }}>
+                  <FaUserClock />
+                </div>
+              </div>
+              <div className="kpi-progress-container">
+                <div className="kpi-progress-track">
+                  <div
+                    className="kpi-progress-fill"
+                    style={{
+                      width: `${allEmployees.length ? (kpis.unassignedEmployees / allEmployees.length) * 100 : 0}%`,
+                      backgroundColor: '#f44336'
+                    }}
+                  ></div>
+                </div>
+                <div className="kpi-progress-text">
+                  {allEmployees.length ? Math.round((kpis.unassignedEmployees / allEmployees.length) * 100) : 0}% of workforce
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -260,6 +372,35 @@ const ManagerDashboard = ({ sidebarOpen }) => {
               >
                 Download Report
               </button>
+
+              {/* Approval Button */}
+              <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+                <div style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#555' }}>
+                  <strong>Status:</strong> {isApproved ? 'Approved ✅' : isCompleted ? 'Pending Approval ⏳' : 'In Progress'}
+                </div>
+                {!isApproved && (
+                  <button
+                    onClick={handleApprove}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      backgroundColor: '#2e7d32',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <span>✓</span> Approve Inspection
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -301,7 +442,7 @@ const ManagerDashboard = ({ sidebarOpen }) => {
             aria-label="Next page"
           >Next</button>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

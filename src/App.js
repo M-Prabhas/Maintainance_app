@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 function AppRoutes() {
   const { isAuthenticated, currentUser } = useApp();
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [sidebarOpen, setSidebarOpen] = React.useState(window.innerWidth > 768);
 
   return (
     <BrowserRouter>
@@ -44,7 +44,7 @@ function AppRoutes() {
           element={
             isAuthenticated ? (
               <div>
-                <Header />
+                <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
                 <div style={{ display: 'flex' }}>
                   <Sidebar
                     userRole={currentUser?.role || 'manager'}

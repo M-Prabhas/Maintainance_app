@@ -1,12 +1,60 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/common/Header';
+import { useApp } from '../context/AppContext';
+import { FaStore, FaClipboardList, FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { mockLocations } from '../data/mockData';
+
+// Fix for default Leaflet icon issues
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
+// Custom numbered icon
+const createNumberedIcon = (number) => {
+  return L.divIcon({
+    className: 'custom-icon',
+    html: `<div style="
+      background-color: #2563eb;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    ">${number}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+};
+
+// Component to fit bounds
+const FitBounds = ({ locations }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (locations.length > 0) {
+      const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [locations, map]);
+  return null;
+};
 
 // Mock Data
 const mockAssignedStores = [
-  { id: 1, name: 'Central Mall', address: '123 Main St, Cityville', contactPerson: 'John Doe', contactNumber: '9876543210' },
-  { id: 2, name: 'Eastside Plaza', address: '456 East Rd, Townsville', contactPerson: 'Jane Smith', contactNumber: '9123456780' },
-  { id: 3, name: 'West End Store', address: '789 West Ave, Villagetown', contactPerson: 'Alan Brown', contactNumber: '9988776655' },
+  { id: 1, name: 'Central Mall', address: '123 Main St, Cityville', contactPerson: 'John Doe', contactNumber: '9876543210', locationId: 'inmumbandheri' },
+  { id: 2, name: 'Eastside Plaza', address: '456 East Rd, Townsville', contactPerson: 'Jane Smith', contactNumber: '9123456780', locationId: 'inmumbandra' },
+  { id: 3, name: 'West End Store', address: '789 West Ave, Villagetown', contactPerson: 'Alan Brown', contactNumber: '9988776655', locationId: 'indelcp' },
 ];
 
 const mockManagementHistory = [
@@ -54,29 +102,127 @@ const getAssignedStores = (employeeId) => {
 
 const rowsPerPage = 10;
 
+const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
+  if (!locations || locations.length === 0) return null;
+
+  const polylinePositions = locations.map(l => [l.lat, l.lng]);
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 3000,
+      display: 'flex', justifyContent: 'center', alignItems: 'center'
+    }}>
+      <div style={{
+        backgroundColor: 'white', borderRadius: '12px',
+        width: '90%', maxWidth: '900px', height: '80vh', position: 'relative', display: 'flex',
+        overflowX: 'auto', overflowY: 'hidden' // Allow horizontal scroll
+      }}>
+        {/* Sidebar for List */}
+        <div style={{ width: '300px', minWidth: '300px', borderRight: '1px solid #eee', display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', flexShrink: 0 }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{readOnly ? 'Assigned Locations' : 'Route Order'}</h3>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+            {locations.map((loc, index) => (
+              <div key={loc.id} style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '10px', marginBottom: '8px', backgroundColor: 'white',
+                borderRadius: '8px', border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', background: '#2563eb', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold'
+                }}>
+                  {index + 1}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{loc.city}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{loc.id}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Map Area */}
+        <div style={{ flex: 1, minWidth: '350px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute', top: '15px', right: '15px',
+              background: 'white', border: 'none', fontSize: '1.5rem', cursor: 'pointer', zIndex: 1000,
+              width: '36px', height: '36px', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+          >
+            &times;
+          </button>
+
+          <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: '100%', width: '100%' }}>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <FitBounds locations={locations} />
+            <Polyline positions={polylinePositions} color="blue" />
+            {locations.map((loc, index) => (
+              <Marker
+                key={loc.id}
+                position={[loc.lat, loc.lng]}
+                icon={createNumberedIcon(index + 1)}
+              >
+                <Popup>
+                  <strong>{index + 1}. {loc.city}</strong><br />
+                  {loc.id}
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const EmployeeDashboard = ({ sidebarOpen }) => {
   const navigate = useNavigate();
+  const { tasks } = useApp(); // Get tasks from context
+
   const assignedStores = getAssignedStores(currentUser.id);
 
   const today = new Date();
   const todayString = today.toISOString().slice(0, 10);
 
-  const todaysAssignments = assignedStores.filter(store =>
-    mockManagementHistory.some(record =>
-      record.storeId === store.id &&
+  // Filter tasks from context for history
+  const employeeHistory = tasks
+    .filter(record =>
       record.employeeId === currentUser.id &&
-      new Date(record.date).toISOString().slice(0, 10) === todayString
+      record.approved === true // ONLY show approved tasks in history
     )
-  );
-
-  const employeeHistory = mockManagementHistory
-    .filter(record => record.employeeId === currentUser.id)
     .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Determine today's assignments (Assigned but not yet in history/completed)
+  // For this mock, we keep using 'assignedStores' but we check if they are done?
+  // The requirement says "Dual-tab... Today's Tasks and Work History... Completed tasks transition to Work History ONCE manager grants approval"
+  // So "Today's Tasks" should probably be separate from History.
+
+  // Let's keep existing logic for "Today's Assignments" for now as it relies on `assignedStores` which comes from a helper,
+  // but ensure History uses the new `tasks` state filtered by `approved`.
+
+  const todaysAssignments = assignedStores.filter(store =>
+    // Logic to hide if completed and approved? Or just assigned. 
+    // Usually "Today's Tasks" are things TO DO. 
+    // If it's done and approved, it moves to history.
+    !employeeHistory.some(h => h.storeId === store.id && new Date(h.date).toISOString().slice(0, 10) === todayString)
+  );
 
   // Tabs and pagination states
   const [activeTab, setActiveTab] = useState('today');
   const [currentPageToday, setCurrentPageToday] = useState(1);
   const [currentPageHistory, setCurrentPageHistory] = useState(1);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'today') setCurrentPageToday(1);
@@ -124,51 +270,123 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
     transition: 'background-color 0.3s ease',
   });
 
+  const mapLocations = useMemo(() => {
+    return todaysAssignments.map(store => {
+      const loc = mockLocations.find(l => l.id === store.locationId);
+      return loc ? { ...loc, city: store.name } : null;
+    }).filter(Boolean);
+  }, [todaysAssignments]);
+
   return (
     <div>
-      <Header />
-      <main className={`main-content${sidebarOpen ? '' : ' sidebar-closed'}`}>
-        <div className="dashboard-header">
-          <h1>Employee Dashboard</h1>
-        </div>
+      <div className="dashboard-header">
+        <h1>Employee Dashboard</h1>
+      </div>
 
-        {/* KPI Section */}
-        <div className="kpi-section">
-          <div className="kpi-grid">
-            <div className="kpi-card">
+      {/* KPI Section */}
+      {/* KPI Section */}
+      <div className="kpi-section">
+        <div className="kpi-grid">
+          {/* KPI 1: Total Stores */}
+          <div className="kpi-card">
+            <div className="kpi-top-row">
               <div className="kpi-content">
-                <h3>Total Stores</h3>
+                <h3>Total Locations</h3>
                 <div className="kpi-value">{totalStores}</div>
               </div>
+              <div className="kpi-icon" style={{ backgroundColor: 'rgba(25, 118, 210, 0.1)', color: '#1976d2' }}>
+                <FaStore />
+              </div>
             </div>
-            <div className="kpi-card">
+            <div className="kpi-progress-container">
+              <div className="kpi-progress-track">
+                <div className="kpi-progress-fill" style={{ width: '100%', backgroundColor: '#1976d2' }}></div>
+              </div>
+              <div className="kpi-progress-text">100% Assigned</div>
+            </div>
+          </div>
+
+          {/* KPI 2: Locations Assigned */}
+          <div className="kpi-card">
+            <div className="kpi-top-row">
               <div className="kpi-content">
                 <h3>Locations Assigned</h3>
                 <div className="kpi-value">{locationsAssigned}</div>
               </div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-content">
-                <h3>Work Completed</h3>
-                <div className="kpi-value">{workCompleted}</div>
+              <div className="kpi-icon" style={{ backgroundColor: 'rgba(255, 152, 0, 0.1)', color: '#f57c00' }}>
+                <FaClipboardList />
               </div>
             </div>
-            <div className="kpi-card">
-              <div className="kpi-content">
-                <h3>Status</h3>
-                <div className="kpi-value" style={{ fontSize: "2.4rem" }}>{status}</div>
+            <div className="kpi-progress-container">
+              <div className="kpi-progress-track">
+                <div
+                  className="kpi-progress-fill"
+                  style={{
+                    width: `${totalStores ? (locationsAssigned / totalStores) * 100 : 0}%`,
+                    backgroundColor: '#f57c00'
+                  }}
+                ></div>
+              </div>
+              <div className="kpi-progress-text">
+                {totalStores ? Math.round((locationsAssigned / totalStores) * 100) : 0}% of scope
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '12px', marginBottom: '14px', marginTop: '18px' }}>
+          {/* KPI 3: Work Completed */}
+          <div className="kpi-card">
+            <div className="kpi-top-row">
+              <div className="kpi-content">
+                <h3>Completed Locations</h3>
+                <div className="kpi-value">{workCompleted}</div>
+              </div>
+              <div className="kpi-icon" style={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', color: '#4caf50' }}>
+                <FaCheckCircle />
+              </div>
+            </div>
+            <div className="kpi-progress-container">
+              <div className="kpi-progress-track">
+                <div className="kpi-progress-fill" style={{ width: '100%', backgroundColor: '#4caf50' }}></div>
+              </div>
+              <div className="kpi-progress-text">Total History</div>
+            </div>
+          </div>
+
+          {/* KPI 4: Status */}
+          <div className="kpi-card">
+            <div className="kpi-top-row">
+              <div className="kpi-content">
+                <h3>Status</h3>
+                <div className="kpi-value" style={{ fontSize: "2rem" }}>{status}</div>
+              </div>
+              <div className="kpi-icon" style={{ backgroundColor: 'rgba(233, 30, 99, 0.1)', color: '#e91e63' }}>
+                <FaInfoCircle />
+              </div>
+            </div>
+            <div className="kpi-progress-container">
+              <div className="kpi-progress-track">
+                <div
+                  className="kpi-progress-fill"
+                  style={{
+                    width: status === 'Active' ? '100%' : '0%',
+                    backgroundColor: '#e91e63'
+                  }}
+                ></div>
+              </div>
+              <div className="kpi-progress-text">{status === 'Active' ? 'Occupied' : 'Standing By'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs and Map Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', marginTop: '18px', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button
             style={{
-              padding: '10px 36px',
+              padding: '10px 20px',
               fontSize: '1.1rem',
-              borderRadius: 32,
+              borderRadius: 10,
               cursor: 'pointer',
               backgroundColor: activeTab === 'today' ? '#1976d2' : '#ddeafc',
               color: activeTab === 'today' ? 'white' : '#1976d2',
@@ -180,13 +398,13 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
             }}
             onClick={() => setActiveTab('today')}
           >
-            📍 Today's Assignments ({todaysAssignments.length})
+            Today's Assignments ({todaysAssignments.length})
           </button>
           <button
             style={{
-              padding: '10px 34px',
+              padding: '10px 20px',
               fontSize: '1.1rem',
-              borderRadius: 32,
+              borderRadius: 10,
               cursor: 'pointer',
               backgroundColor: activeTab === 'history' ? '#1976d2' : '#ddeafc',
               color: activeTab === 'history' ? 'white' : '#1976d2',
@@ -198,142 +416,171 @@ const EmployeeDashboard = ({ sidebarOpen }) => {
             }}
             onClick={() => setActiveTab('history')}
           >
-            📜 Work History ({employeeHistory.length})
+            Work History ({employeeHistory.length})
           </button>
         </div>
 
-        {/* Scrollable content box */}
-        <div
+        <button
           style={{
-            overflowY: 'auto',
-            maxHeight: 'calc(100vh - 360px)', // Adjust for pagination controls height
-            padding: '18px 10px',
-            borderRadius: '8px',
+            padding: '10px 20px',
+            fontSize: '1rem',
+            borderRadius: 10,
+            cursor: 'pointer',
             backgroundColor: '#fff',
-            margin: '0 10px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.045)',
+            color: '#1976d2',
+            border: '1px solid #1976d2',
+            outline: 'none',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.3s ease'
           }}
+          onClick={() => setShowMap(true)}
         >
-          {activeTab === 'today' && (
-            <>{todaysAssignments.length > 0 ? (
+          <span>🗺️</span> View Map
+        </button>
+      </div>
+
+      {/* Scrollable content box */}
+      <div
+        style={{
+          overflowY: 'auto',
+          maxHeight: 'calc(100vh - 360px)', // Adjust for pagination controls height
+          padding: '18px 10px',
+          borderRadius: '8px',
+          backgroundColor: '#fff',
+          margin: '0 10px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.045)',
+        }}
+      >
+        {activeTab === 'today' && (
+          <>{todaysAssignments.length > 0 ? (
+            <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
+                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
+                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Address</th>
+                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Contact</th>
+                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Phone</th>
+                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagedTodaysAssignments.map(store => (
+                  <tr
+                    key={store.id}
+                    tabIndex={0}
+                    className="row-hover"
+                    aria-label={`Inspect ${store.name}`}
+                    onClick={() => handleStoreClick(store.id)}
+                    onKeyDown={e => e.key === 'Enter' && handleStoreClick(store.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.name}</td>
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.address}</td>
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactPerson}</td>
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactNumber}</td>
+                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                      <button
+                        style={{ padding: '8px 16px', backgroundColor: '#1976d2', color: '#fff', border: 'none', borderRadius: 12, fontWeight: '600', cursor: 'pointer' }}
+                        onClick={e => { e.stopPropagation(); handleStoreClick(store.id); }}
+                      >
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
+              No assignments scheduled for today.
+            </div>
+          )}
+          </>
+        )}
+
+        {activeTab === 'history' && (
+          <>
+            <div>
+              {employeeHistory.length > 0 ? (
                 <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
                       <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Address</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Contact</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Phone</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Action</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Date</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Duration</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Status</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pagedTodaysAssignments.map(store => (
-                      <tr
-                        key={store.id}
-                        tabIndex={0}
-                        className="row-hover"
-                        aria-label={`Inspect ${store.name}`}
-                        onClick={() => handleStoreClick(store.id)}
-                        onKeyDown={e => e.key === 'Enter' && handleStoreClick(store.id)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.name}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.address}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactPerson}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactNumber}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                          <button
-                            style={{ padding: '8px 16px', backgroundColor: '#1976d2', color: '#fff', border: 'none', borderRadius: 12, fontWeight: '600', cursor: 'pointer' }}
-                            onClick={e => { e.stopPropagation(); handleStoreClick(store.id); }}
-                          >
-                            Inspect
-                          </button>
+                    {pagedEmployeeHistory.map(entry => (
+                      <tr key={entry.id}>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.storeName}</td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(entry.date)}</td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.duration}</td>
+                        <td style={{
+                          fontWeight: 600,
+                          color: entry.status === 'completed' ? '#4caf50' : '#f57c00',
+                          padding: '8px',
+                          border: '1px solid #ddd',
+                        }}>
+                          {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                         </td>
+                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.remarks}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
                 <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
-                  No assignments scheduled for today.
+                  No maintenance history found.
                 </div>
               )}
-            </>
-          )}
+            </div>
+          </>
+        )}
+      </div>
 
-          {activeTab === 'history' && (
-            <>
-                <div>
-                {employeeHistory.length > 0 ? (
-                  <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Date</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Duration</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Status</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd' }}>Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pagedEmployeeHistory.map(entry => (
-                        <tr key={entry.id}>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.storeName}</td>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(entry.date)}</td>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.duration}</td>
-                          <td style={{
-                            fontWeight: 600,
-                            color: entry.status === 'completed' ? '#4caf50' : '#f57c00',
-                            padding: '8px',
-                            border: '1px solid #ddd',
-                          }}>
-                            {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
-                          </td>
-                          <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.remarks}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
-                    No maintenance history found.
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+      {/* Pagination Controls - always visible outside scrollable container */}
+      <div style={{ marginTop: '12px', marginBottom: '24px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+        <button
+          onClick={() => activeTab === 'today' ? setCurrentPageToday(p => Math.max(1, p - 1)) : setCurrentPageHistory(p => Math.max(1, p - 1))}
+          disabled={(activeTab === 'today' ? currentPageToday : currentPageHistory) === 1}
+          style={paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === 1)}
+          onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1565c0'; }}
+          onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1976d2'; }}
+          aria-label="Previous page"
+        >
+          Previous
+        </button>
 
-        {/* Pagination Controls - always visible outside scrollable container */}
-        <div style={{ marginTop: '12px', marginBottom: '24px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
-          <button
-            onClick={() => activeTab === 'today' ? setCurrentPageToday(p => Math.max(1, p - 1)) : setCurrentPageHistory(p => Math.max(1, p - 1))}
-            disabled={(activeTab === 'today' ? currentPageToday : currentPageHistory) === 1}
-            style={paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === 1)}
-            onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1565c0'; }}
-            onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1976d2'; }}
-            aria-label="Previous page"
-          >
-            Previous
-          </button>
+        <span style={{ alignSelf: 'center', fontWeight: '600' }}>
+          Page {activeTab === 'today' ? currentPageToday : currentPageHistory} of {activeTab === 'today' ? totalTodayPages : totalHistoryPages}
+        </span>
 
-          <span style={{ alignSelf: 'center', fontWeight: '600' }}>
-            Page {activeTab === 'today' ? currentPageToday : currentPageHistory} of {activeTab === 'today' ? totalTodayPages : totalHistoryPages}
-          </span>
+        <button
+          onClick={() => activeTab === 'today' ? setCurrentPageToday(p => Math.min(totalTodayPages, p + 1)) : setCurrentPageHistory(p => Math.min(totalHistoryPages, p + 1))}
+          disabled={(activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages)}
+          style={paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages))}
+          onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1565c0'; }}
+          onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1976d2'; }}
+          aria-label="Next page"
+        >
+          Next
+        </button>
+      </div>
 
-          <button
-            onClick={() => activeTab === 'today' ? setCurrentPageToday(p => Math.min(totalTodayPages, p + 1)) : setCurrentPageHistory(p => Math.min(totalHistoryPages, p + 1))}
-            disabled={(activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages)}
-            style={paginationButtonStyle((activeTab === 'today' ? currentPageToday : currentPageHistory) === (activeTab === 'today' ? totalTodayPages : totalHistoryPages))}
-            onMouseOver={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1565c0'; }}
-            onMouseOut={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#1976d2'; }}
-            aria-label="Next page"
-          >
-            Next
-          </button>
-        </div>
-      </main>
-    </div>
+      {showMap && (
+        <MapModal
+          locations={mapLocations}
+          onClose={() => setShowMap(false)}
+          readOnly={true}
+        />
+      )}
+    </div >
   );
 };
 

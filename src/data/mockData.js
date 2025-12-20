@@ -1,74 +1,74 @@
 // Location-based data structure
 export const mockLocations = [
-  { id: 'inmumbandheri', city: 'Mumbai', region: 'Andheri', state: 'Maharashtra' },
-  { id: 'inmumbandra', city: 'Mumbai', region: 'Bandra', state: 'Maharashtra' },
-  { id: 'indelcp', city: 'Delhi', region: 'Connaught Place', state: 'Delhi' },
-  { id: 'inblrkrmngla', city: 'Bangalore', region: 'Koramangala', state: 'Karnataka' },
-  { id: 'inblrwhitefield', city: 'Bangalore', region: 'Whitefield', state: 'Karnataka' }
+  { id: 'inmumbandheri', city: 'Mumbai', region: 'Andheri', state: 'Maharashtra', lat: 19.1136, lng: 72.8697 },
+  { id: 'inmumbandra', city: 'Mumbai', region: 'Bandra', state: 'Maharashtra', lat: 19.0596, lng: 72.8295 },
+  { id: 'indelcp', city: 'Delhi', region: 'Connaught Place', state: 'Delhi', lat: 28.6315, lng: 77.2167 },
+  { id: 'inblrkrmngla', city: 'Bangalore', region: 'Koramangala', state: 'Karnataka', lat: 12.9352, lng: 77.6245 },
+  { id: 'inblrwhitefield', city: 'Bangalore', region: 'Whitefield', state: 'Karnataka', lat: 12.9698, lng: 77.7500 }
 ];
 
 // Users with location assignments
 export const mockUsers = [
-  { 
-    id: 1, 
-    name: 'Manager Singh', 
-    email: 'manager@example.com', 
+  {
+    id: 1,
+    name: 'Manager Singh',
+    email: 'manager@example.com',
     password: 'manager123',
     role: 'manager',
     assignedLocationIds: ['inmumbandheri', 'inmumbandra'] // Mumbai locations
   },
-  { 
-    id: 2, 
-    name: 'Manager Gupta', 
-    email: 'manager.gupta@example.com', 
+  {
+    id: 2,
+    name: 'Manager Gupta',
+    email: 'manager.gupta@example.com',
     password: 'manager123',
     role: 'manager',
     assignedLocationIds: ['indelcp'] // Delhi location
   },
-  { 
-    id: 3, 
-    name: 'Manager Reddy', 
-    email: 'manager.reddy@example.com', 
+  {
+    id: 3,
+    name: 'Manager Reddy',
+    email: 'manager.reddy@example.com',
     password: 'manager123',
     role: 'manager',
     assignedLocationIds: ['inblrkrmngla', 'inblrwhitefield'] // Bangalore locations
   },
-  { 
-    id: 4, 
-    name: 'Rajesh Kumar', 
-    email: 'rajesh@example.com', 
+  {
+    id: 4,
+    name: 'Rajesh Kumar',
+    email: 'rajesh@example.com',
     password: 'emp123',
     role: 'employee',
     assignedLocationIds: ['inmumbandheri']
   },
-  { 
-    id: 5, 
-    name: 'Priya Sharma', 
-    email: 'priya@example.com', 
+  {
+    id: 5,
+    name: 'Priya Sharma',
+    email: 'priya@example.com',
     password: 'emp123',
     role: 'employee',
     assignedLocationIds: ['inmumbandra']
   },
-  { 
-    id: 6, 
-    name: 'Karthik Rao', 
-    email: 'karthik@example.com', 
+  {
+    id: 6,
+    name: 'Karthik Rao',
+    email: 'karthik@example.com',
     password: 'emp123',
     role: 'employee',
     assignedLocationIds: ['indelcp']
   },
-  { 
-    id: 7, 
-    name: 'Suresh Iyer', 
-    email: 'suresh@example.com', 
+  {
+    id: 7,
+    name: 'Suresh Iyer',
+    email: 'suresh@example.com',
     password: 'emp123',
     role: 'employee',
     assignedLocationIds: ['inblrkrmngla', 'inblrwhitefield']
   },
-  { 
-    id: 8, 
-    name: 'Third Party Tech', 
-    email: 'vendor@example.com', 
+  {
+    id: 8,
+    name: 'Third Party Tech',
+    email: 'vendor@example.com',
     password: 'vendor123',
     role: 'thirdparty',
     assignedLocationIds: []
@@ -148,10 +148,10 @@ export const mockStores = [
 // Appliances mapped directly to location IDs
 export const mockAppliances = [
   // Location: inmumbandheri (Andheri, Mumbai)
-  { 
-    id: 1, 
+  {
+    id: 1,
     locationId: 'inmumbandheri',
-    name: 'Air Conditioner - Central Unit 1', 
+    name: 'Air Conditioner - Central Unit 1',
     model: 'Daikin Split AC 1.5T',
     serialNumber: 'DAI-2024-001',
     category: 'HVAC',
@@ -160,10 +160,10 @@ export const mockAppliances = [
     amcEndDate: '2025-01-14',
     amcStatus: 'active'
   },
-  { 
-    id: 2, 
+  {
+    id: 2,
     locationId: 'inmumbandheri',
-    name: 'Electrical Panel - Main', 
+    name: 'Electrical Panel - Main',
     model: 'Siemens 400A MCB',
     serialNumber: 'SIE-2023-045',
     category: 'Electrical',
@@ -172,10 +172,10 @@ export const mockAppliances = [
     amcEndDate: '2025-02-28',
     amcStatus: 'active'
   },
-  { 
-    id: 3, 
+  {
+    id: 3,
     locationId: 'inmumbandheri',
-    name: 'Fire Alarm System', 
+    name: 'Fire Alarm System',
     model: 'Honeywell FA-500',
     serialNumber: 'HON-2024-012',
     category: 'Safety',
@@ -184,10 +184,10 @@ export const mockAppliances = [
     amcEndDate: '2025-02-09',
     amcStatus: 'active'
   },
-  { 
-    id: 4, 
+  {
+    id: 4,
     locationId: 'inmumbandheri',
-    name: 'Generator - Backup Power', 
+    name: 'Generator - Backup Power',
     model: 'Cummins 50KVA',
     serialNumber: 'CUM-2023-089',
     category: 'Power',
@@ -196,12 +196,12 @@ export const mockAppliances = [
     amcEndDate: '2024-11-30',
     amcStatus: 'expiring'
   },
-  
+
   // Location: inmumbandra (Bandra, Mumbai)
-  { 
-    id: 5, 
+  {
+    id: 5,
     locationId: 'inmumbandra',
-    name: 'Air Conditioner - Office Block', 
+    name: 'Air Conditioner - Office Block',
     model: 'LG Dual Inverter 2T',
     serialNumber: 'LG-2024-034',
     category: 'HVAC',
@@ -210,10 +210,10 @@ export const mockAppliances = [
     amcEndDate: '2025-03-31',
     amcStatus: 'active'
   },
-  { 
-    id: 6, 
+  {
+    id: 6,
     locationId: 'inmumbandra',
-    name: 'Water Pump - Main Supply', 
+    name: 'Water Pump - Main Supply',
     model: 'Grundfos CR 5-12',
     serialNumber: 'GRU-2023-067',
     category: 'Plumbing',
@@ -222,10 +222,10 @@ export const mockAppliances = [
     amcEndDate: '2025-01-19',
     amcStatus: 'active'
   },
-  { 
-    id: 7, 
+  {
+    id: 7,
     locationId: 'inmumbandra',
-    name: 'CCTV System - 12 Cameras', 
+    name: 'CCTV System - 12 Cameras',
     model: 'Hikvision DS-7608',
     serialNumber: 'HIK-2024-023',
     category: 'Security',
@@ -234,12 +234,12 @@ export const mockAppliances = [
     amcEndDate: '2025-03-14',
     amcStatus: 'active'
   },
-  
+
   // Location: indelcp (Connaught Place, Delhi)
-  { 
-    id: 8, 
+  {
+    id: 8,
     locationId: 'indelcp',
-    name: 'LED Lighting System', 
+    name: 'LED Lighting System',
     model: 'Philips SmartBright 100W',
     serialNumber: 'PHI-2024-056',
     category: 'Electrical',
@@ -248,10 +248,10 @@ export const mockAppliances = [
     amcEndDate: '2025-01-31',
     amcStatus: 'active'
   },
-  { 
-    id: 9, 
+  {
+    id: 9,
     locationId: 'indelcp',
-    name: 'Elevator System', 
+    name: 'Elevator System',
     model: 'Otis Gen2',
     serialNumber: 'OTI-2023-012',
     category: 'Infrastructure',
@@ -260,10 +260,10 @@ export const mockAppliances = [
     amcEndDate: '2024-10-31',
     amcStatus: 'expired'
   },
-  { 
-    id: 10, 
+  {
+    id: 10,
     locationId: 'indelcp',
-    name: 'UPS System - Server Room', 
+    name: 'UPS System - Server Room',
     model: 'APC Smart-UPS 10KVA',
     serialNumber: 'APC-2024-078',
     category: 'Power',
@@ -272,12 +272,12 @@ export const mockAppliances = [
     amcEndDate: '2025-04-30',
     amcStatus: 'active'
   },
-  
+
   // Location: inblrkrmngla (Koramangala, Bangalore)
-  { 
-    id: 11, 
+  {
+    id: 11,
     locationId: 'inblrkrmngla',
-    name: 'HVAC Central System', 
+    name: 'HVAC Central System',
     model: 'Carrier 30GTR140',
     serialNumber: 'CAR-2023-145',
     category: 'HVAC',
@@ -286,10 +286,10 @@ export const mockAppliances = [
     amcEndDate: '2025-01-09',
     amcStatus: 'active'
   },
-  { 
-    id: 12, 
+  {
+    id: 12,
     locationId: 'inblrkrmngla',
-    name: 'Fire Suppression System', 
+    name: 'Fire Suppression System',
     model: 'Tyco FM200',
     serialNumber: 'TYC-2024-089',
     category: 'Safety',
@@ -298,12 +298,12 @@ export const mockAppliances = [
     amcEndDate: '2025-02-28',
     amcStatus: 'active'
   },
-  
+
   // Location: inblrwhitefield (Whitefield, Bangalore)
-  { 
-    id: 13, 
+  {
+    id: 13,
     locationId: 'inblrwhitefield',
-    name: 'Diesel Generator - Main', 
+    name: 'Diesel Generator - Main',
     model: 'Kirloskar 100KVA',
     serialNumber: 'KIR-2023-234',
     category: 'Power',
@@ -312,10 +312,10 @@ export const mockAppliances = [
     amcEndDate: '2024-10-14',
     amcStatus: 'expired'
   },
-  { 
-    id: 14, 
+  {
+    id: 14,
     locationId: 'inblrwhitefield',
-    name: 'Security Access Control System', 
+    name: 'Security Access Control System',
     model: 'HID VertX V100',
     serialNumber: 'HID-2024-067',
     category: 'Security',

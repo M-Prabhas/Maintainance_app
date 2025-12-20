@@ -10,7 +10,7 @@ export const AppProvider = ({ children }) => {
   // Login function
   const login = (email, password) => {
     console.log('Attempting login with:', email); // Debug log
-    
+
     const user = mockUsers.find(
       (u) => u.email === email && u.password === password
     );
@@ -32,6 +32,53 @@ export const AppProvider = ({ children }) => {
     setCurrentUser(null);
     setIsAuthenticated(false);
     sessionStorage.removeItem('currentUser');
+  };
+
+  // State for Tasks (History/Assignments)
+  // Initializing with mockManagementHistory for demo purposes
+  // In a real app, this would be fetched from an API
+  const [tasks, setTasks] = useState([
+    {
+      id: 101,
+      storeId: 1,
+      storeName: 'Central Mall',
+      employeeId: 1001,
+      date: new Date().toISOString(),
+      duration: '2.5',
+      status: 'completed',
+      approved: false, // New field for approval
+      remarks: 'Replaced filters, checked wiring.',
+    },
+    {
+      id: 102,
+      storeId: 2,
+      storeName: 'Eastside Plaza',
+      employeeId: 1001,
+      date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
+      duration: '1.0',
+      status: 'completed',
+      approved: true, // Already approved
+      remarks: 'Inspection done, all good.',
+    },
+    {
+      id: 103,
+      storeId: 3,
+      storeName: 'West End Store',
+      employeeId: 1001,
+      date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
+      duration: '3.0',
+      status: 'hold',
+      approved: false,
+      remarks: 'Waiting for part replacement.',
+    },
+  ]);
+
+  const approveTask = (taskId) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === taskId ? { ...task, approved: true } : task
+      )
+    );
   };
 
   // Restore session on reload
@@ -57,6 +104,8 @@ export const AppProvider = ({ children }) => {
     logout,
     mockLocations,
     getStoresByLocation,
+    tasks, // Expose tasks state
+    approveTask, // Expose approval function
   };
 
   return (
