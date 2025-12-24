@@ -162,7 +162,6 @@ const EmployeeDashboard = () => {
 
   const today = new Date();
   const todayString = today.toISOString().slice(0, 10);
-
   // Filter tasks from context for history
   const employeeHistory = tasks
     .filter(record =>

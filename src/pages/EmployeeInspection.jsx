@@ -37,8 +37,7 @@ const EmployeeInspection = () => {
         beforePhoto: null,
         afterPhoto: null,
         subTasks: mockSubTasks.reduce((acc, task) => ({ ...acc, [task]: false }), {}),
-        remarks: '',
-        status: ''
+        isInspected: false // Track if visited/filled
       };
     });
     return initial;
@@ -49,6 +48,9 @@ const EmployeeInspection = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  // Global State
+  const [globalRemarks, setGlobalRemarks] = useState('');
+  const [globalStatus, setGlobalStatus] = useState(''); // 'completed', 'support_assist', 'not_accepted'
 
   const updateChecklist = (applianceId, updates) => {
     setChecklist(prev => ({ ...prev, [applianceId]: { ...prev[applianceId], ...updates } }));
@@ -74,28 +76,27 @@ const EmployeeInspection = () => {
     }));
   };
 
-  const handleRemarksChange = (applianceId, remarks) => {
-    updateChecklist(applianceId, { remarks });
-  };
+  const handleSaveModal = () => {
+    // Mark as inspected if at least something is done (e.g. strict check or loose check).
+    // Let's assume if modal is opened and saved, we mark it visited/inspected.
+    // Or better: check if mandatory fields are filled?
+    // For now, simple "Mark as Done" logic
 
-  const handleStatusChange = (applianceId, status) => {
-    const item = checklist[applianceId];
-
-    // Validation for non-completed actions
-    if (status === 'support_assist' || status === 'not_accepted') {
-      if (!item.remarks.trim()) {
-        alert('Remarks are mandatory for this action.');
-        return;
-      }
-    }
-
-    updateChecklist(applianceId, { status });
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2800);
-    setSelectedApplianceId(null); // Close modal after action
+    // Simple validation: Need at least one photo or check? User said just "save/close".
+    updateChecklist(selectedApplianceId, { isInspected: true });
+    setSelectedApplianceId(null);
   };
 
   const handleSubmitReport = async () => {
+    if (!globalStatus) {
+      alert('Please select an overall Status (Completed, Support Assist, or Not Done).');
+      return;
+    }
+    if ((globalStatus === 'support_assist' || globalStatus === 'not_accepted') && !globalRemarks.trim()) {
+      alert('Global Remarks are mandatory for Support Assist or Not Done status.');
+      return;
+    }
+
     setSubmitLoading(true);
 
     try {
@@ -123,8 +124,6 @@ const EmployeeInspection = () => {
 
   const selectedAppliance = selectedApplianceId ? appliances.find(a => a.id === selectedApplianceId) : null;
   const selectedItem = selectedAppliance ? checklist[selectedAppliance.id] : null;
-  const allSubTasksChecked = selectedItem ? mockSubTasks.every(task => selectedItem.subTasks[task]) : false;
-  const canComplete = selectedItem ? (selectedItem.beforePhoto && allSubTasksChecked && selectedItem.afterPhoto) : false;
 
   return (
     <div
@@ -195,7 +194,7 @@ const EmployeeInspection = () => {
             fontWeight: 600,
             boxShadow: '0 2px 4px rgba(0,0,0,0.07)',
           }}>
-            ✓ Status updated successfully!
+            ✓ Report submitted successfully!
           </div>
         )}
 
@@ -203,6 +202,9 @@ const EmployeeInspection = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {filteredAppliances.map(appliance => {
             const item = checklist[appliance.id];
+            // Determine if "Ready" / Inspected
+            const isDone = item.isInspected;
+
             return (
               <div
                 key={appliance.id}
@@ -237,16 +239,27 @@ const EmployeeInspection = () => {
                   </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {item.status && (
+                  {isDone ? (
                     <span style={{
                       padding: '4px 10px',
                       borderRadius: '12px',
                       fontSize: '0.8rem',
                       fontWeight: '600',
-                      background: item.status === 'completed' ? '#e8f5e9' : item.status === 'support_assist' ? '#fff3e0' : '#ffebee',
-                      color: item.status === 'completed' ? '#2e7d32' : item.status === 'support_assist' ? '#ef6c00' : '#c62828'
+                      background: '#e8f5e9',
+                      color: '#2e7d32'
                     }}>
-                      {item.status === 'completed' ? 'Completed' : item.status === 'support_assist' ? 'Support Assist' : 'Not Accepted'}
+                      ✓ Checked
+                    </span>
+                  ) : (
+                    <span style={{
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      background: '#f5f5f5',
+                      color: '#777'
+                    }}>
+                      Pending
                     </span>
                   )}
                   <span style={{ fontSize: '1.5rem', color: '#1976d2' }}>→</span>
@@ -254,6 +267,86 @@ const EmployeeInspection = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Universal Remarks & Status Section */}
+        <div style={{ marginTop: '40px', padding: '24px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ marginTop: 0, color: '#1976d2' }}>Inspection Summary</h3>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#333' }}>Global Remarks / Observation</label>
+            <textarea
+              placeholder="Enter overall remarks for this location (Mandatory for Support Assist / Not Accepted)..."
+              value={globalRemarks}
+              onChange={e => setGlobalRemarks(e.target.value)}
+              rows={3}
+              style={{
+                width: '100%',
+                padding: 12,
+                fontSize: '1em',
+                border: '1px solid #ccc',
+                borderRadius: 6,
+                fontFamily: 'inherit',
+                outline: 'none',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <label style={{ display: 'block', fontWeight: '600', marginBottom: '12px', color: '#333' }}>Overall Status</label>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setGlobalStatus('completed')}
+              style={{
+                flex: 1,
+                padding: '12px 0',
+                backgroundColor: globalStatus === 'completed' ? '#4caf50' : '#e0e0e0',
+                color: globalStatus === 'completed' ? '#fff' : '#555',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: globalStatus === 'completed' ? '0 2px 6px rgba(76, 175, 80, 0.4)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              ✓ Completed
+            </button>
+            <button
+              onClick={() => setGlobalStatus('support_assist')}
+              style={{
+                flex: 1,
+                padding: '12px 0',
+                backgroundColor: globalStatus === 'support_assist' ? '#f57c00' : '#e0e0e0',
+                color: globalStatus === 'support_assist' ? '#fff' : '#555',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: globalStatus === 'support_assist' ? '0 2px 6px rgba(245, 124, 0, 0.4)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              🔧 Support Assist
+            </button>
+            <button
+              onClick={() => setGlobalStatus('not_accepted')}
+              style={{
+                flex: 1,
+                padding: '12px 0',
+                backgroundColor: globalStatus === 'not_accepted' ? '#d32f2f' : '#e0e0e0',
+                color: globalStatus === 'not_accepted' ? '#fff' : '#555',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: globalStatus === 'not_accepted' ? '0 2px 6px rgba(211, 47, 47, 0.4)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              ✕ Not Done
+            </button>
+          </div>
         </div>
 
         {/* Submit Report Button */}
@@ -329,7 +422,7 @@ const EmployeeInspection = () => {
           display: 'flex',
           alignItems: 'flex-start', // Align to top so scrolling works correctly
           justifyContent: 'center'
-        }} onClick={() => setSelectedApplianceId(null)}>
+        }} onClick={handleSaveModal}>
           <div style={{
             backgroundColor: '#fff',
             borderRadius: '16px',
@@ -352,7 +445,7 @@ const EmployeeInspection = () => {
                 </p>
               </div>
               <button
-                onClick={() => setSelectedApplianceId(null)}
+                onClick={handleSaveModal}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -421,79 +514,25 @@ const EmployeeInspection = () => {
                 {selectedItem.afterPhoto && <div style={{ marginTop: '6px', color: 'green', fontSize: '0.9rem', fontWeight: '500' }}>✓ Photo Uploaded</div>}
               </div>
 
-              {/* Remarks */}
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#333' }}>Remarks</label>
-                <textarea
-                  placeholder="Enter remarks (Mandatory for Support Assist / Not Accepted)..."
-                  value={selectedItem.remarks}
-                  onChange={e => handleRemarksChange(selectedAppliance.id, e.target.value)}
-                  rows={3}
+              <div style={{ marginTop: '30px', textAlign: 'right' }}>
+                <button
+                  onClick={handleSaveModal}
                   style={{
-                    width: '95%',
-                    padding: 12,
-                    fontSize: '1em',
-                    border: '1px solid #ccc',
-                    borderRadius: 6,
-                    fontFamily: 'inherit',
-                    outline: 'none',
+                    padding: '12px 24px',
+                    backgroundColor: '#1976d2',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 12px rgba(25,118,210,0.3)'
                   }}
-                />
+                >
+                  Save & Close
+                </button>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => handleStatusChange(selectedAppliance.id, 'completed')}
-                  disabled={!canComplete}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    backgroundColor: canComplete ? '#4caf50' : '#e0e0e0',
-                    color: canComplete ? '#fff' : '#999',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    cursor: canComplete ? 'pointer' : 'not-allowed',
-                    boxShadow: canComplete ? '0 2px 6px rgba(76, 175, 80, 0.3)' : 'none'
-                  }}
-                  title={!canComplete ? "Complete all steps above to enable" : ""}
-                >
-                  ✓ Completed
-                </button>
-                <button
-                  onClick={() => handleStatusChange(selectedAppliance.id, 'support_assist')}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    backgroundColor: '#f57c00',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(245, 124, 0, 0.3)'
-                  }}
-                >
-                  🔧 Assist Support
-                </button>
-                <button
-                  onClick={() => handleStatusChange(selectedAppliance.id, 'not_accepted')}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    backgroundColor: '#d32f2f',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(211, 47, 47, 0.3)'
-                  }}
-                >
-                  ✕ Not Done
-                </button>
-              </div>
             </div>
           </div>
         </div>

@@ -14,10 +14,20 @@ const allEmployees = [
 ];
 
 const ManagerDashboard = () => {
+  // State Definitions
   const [locationSearch, setLocationSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
+
+  // Reassignment Modal State
+  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
+  const [managerRemark, setManagerRemark] = useState('');
+  const [reassignDate, setReassignDate] = useState('');
+
   const rowsPerPage = 10;
+
+  // Context
+  const { tasks, approveTask, reassignTask } = useApp();
 
   // For modal: Download dummy report file
   const handleDownloadReport = (locId) => {
@@ -28,8 +38,6 @@ const ManagerDashboard = () => {
     link.click();
     document.body.removeChild(link);
   };
-
-  const { tasks, approveTask } = useApp();
 
   // Use a more robust check or fallback
   const currentTask = tasks.find(t => t.storeName.toLowerCase().includes(selectedLocationId?.toLowerCase()) || t.id === 101);
@@ -42,6 +50,35 @@ const ManagerDashboard = () => {
       alert(`Inspection for ${selectedLocationId} approved!`);
       setSelectedLocationId(null);
     }
+  };
+
+  const openReassignModal = () => {
+    setManagerRemark('');
+    setReassignDate(''); // Reset date
+    setIsReassignModalOpen(true);
+  };
+
+  const confirmReassign = () => {
+    if (!reassignDate) {
+      alert('Assignment Date is mandatory.');
+      return;
+    }
+    if (!managerRemark.trim()) {
+      alert('Manager Remark is mandatory for reassignment.');
+      return;
+    }
+
+    if (currentTask) {
+      // In a real app, we would pass reassignDate too.
+      // For now, reassignTask might only accept remarks, but we'll assume we capture the date logic here.
+      // We append date to remark for visibility in this mock.
+      const fullRemark = `[Reassigned for ${reassignDate}] ${managerRemark}`;
+      reassignTask(currentTask.id, fullRemark);
+      alert(`Reassigned inspection for location ${selectedLocationId} to same employee for ${reassignDate}.`);
+    }
+
+    setIsReassignModalOpen(false);
+    setSelectedLocationId(null);
   };
 
   const appliancesFiltered = useMemo(() => {
@@ -376,30 +413,158 @@ const ManagerDashboard = () => {
               {/* Approval Button */}
               <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
                 <div style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#555' }}>
-                  <strong>Status:</strong> {isApproved ? 'Approved ✅' : isCompleted ? 'Pending Approval ⏳' : 'In Progress'}
+                  <strong>Status:</strong> {
+                    isApproved ? 'Approved ✅' :
+                      isCompleted ? 'Pending Approval ⏳' :
+                        currentTask?.status === 'support_assist' ? 'Support Assist 🆘' :
+                          currentTask?.status === 'not_accepted' ? 'Not Done ❌' :
+                            (currentTask?.status || 'In Progress')
+                  }
                 </div>
                 {!isApproved && (
-                  <button
-                    onClick={handleApprove}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      backgroundColor: '#2e7d32',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '1rem',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <span>✓</span> Approve Inspection
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {/* Show Approve ONLY if status is 'completed' */}
+                    {isCompleted && (
+                      <button
+                        onClick={handleApprove}
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          backgroundColor: '#2e7d32',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '1rem',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span>✓</span> Approve
+                      </button>
+                    )}
+
+                    {/* Show Reassign ONLY if status is 'support_assist' or 'not_accepted' (or just NOT completed implies issue?)
+                        The user said: "in case of other two options not show approve button and reassign button...".
+                        Let's rely on !isCompleted + explicit check if needed, or just show Reassign if not completed.
+                        Given 'In Progress' shouldn't show buttons, we should check for pending review statuses.
+                        We'll check: status === 'not_accepted' || status === 'support_assist'
+                    */}
+                    {(currentTask?.status === 'not_accepted' || currentTask?.status === 'support_assist') && (
+                      <button
+                        onClick={openReassignModal}
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          backgroundColor: '#f57c00',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '1rem',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <span>↺</span> Reassign
+                      </button>
+                    )}
+                  </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reassignment Modal - customized as Assignment Form */}
+        {isReassignModalOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="modal-overlay"
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1100,
+              display: 'flex', justifyContent: 'center', alignItems: 'center'
+            }}
+          >
+            <div style={{
+              backgroundColor: '#fff', padding: '24px', borderRadius: '12px',
+              maxWidth: '500px', width: '90%', boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+              maxHeight: '90vh', overflowY: 'auto'
+            }}>
+              <h2 style={{ marginTop: 0, color: '#1976d2' }}>Reassign Task</h2>
+
+              <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f5f9ff', borderRadius: '8px', border: '1px solid #dbeafe' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: '#1e3a8a' }}>
+                  <strong>Assigning to:</strong> {currentTask?.employeeName || 'Original Employee'} <span style={{ fontSize: '0.8rem', color: '#666' }}>(Fixed)</span>
+                </p>
+                <p style={{ margin: 0, fontSize: '0.95rem', color: '#1e3a8a' }}>
+                  <strong>Location:</strong> {selectedLocationId} <span style={{ fontSize: '0.8rem', color: '#666' }}>(Read-only)</span>
+                </p>
+                <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                  <strong>Current Status:</strong> {currentTask?.status || 'N/A'}
+                </p>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                  Assignment Date <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="date"
+                  value={reassignDate}
+                  onChange={(e) => setReassignDate(e.target.value)}
+                  style={{
+                    width: '100%', padding: '10px', borderRadius: '6px',
+                    border: '1px solid #ccc', fontSize: '1rem'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                  Manager Remark (Notes) <span style={{ color: 'red' }}>*</span>
+                </label>
+                <textarea
+                  value={managerRemark}
+                  onChange={(e) => setManagerRemark(e.target.value)}
+                  placeholder="Enter specific instructions for the employee..."
+                  rows={4}
+                  style={{
+                    width: '100%', padding: '10px', borderRadius: '6px',
+                    border: '1px solid #ccc', fontSize: '1rem', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button
+                  onClick={() => setIsReassignModalOpen(false)}
+                  style={{
+                    padding: '10px 20px', background: 'transparent', border: '1px solid #ccc',
+                    borderRadius: '6px', cursor: 'pointer', color: '#555', fontWeight: '600'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmReassign}
+                  style={{
+                    padding: '10px 20px', backgroundColor: '#f57c00', color: '#fff',
+                    border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600',
+                    display: 'flex', alignItems: 'center', gap: '6px'
+                  }}
+                >
+                  <span>↺</span> Reassign
+                </button>
               </div>
             </div>
           </div>
