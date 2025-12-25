@@ -93,11 +93,14 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c; // Distance in km
 };
 
-const LocationMultiPicker = ({ options, selectedIds, onAdd, onRemove, onReorder, disabled, anchorLocationId, onAutoAssign }) => {
+const LocationMultiPicker = ({ options, selectedIds, onAdd, onRemove, onReorder, disabled, anchorLocationId, onAutoAssign, onUpdateOrder }) => {
   const [searchText, setSearchText] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [autoAssignEnabled, setAutoAssignEnabled] = useState(false);
   const ref = useRef();
+
+  // DnD State
+  const [draggedIndex, setDraggedIndex] = useState(null);
 
   const filteredOptions = useMemo(() => {
     const lower = searchText.toLowerCase();
@@ -145,6 +148,32 @@ const LocationMultiPicker = ({ options, selectedIds, onAdd, onRemove, onReorder,
       setSearchText('');
       setIsOpen(false);
     }
+  };
+
+  // Drag Handlers for Pills
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent dummy image or just let default ghost happen
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault(); // Necessary to allow dropping
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const newIds = [...selectedIds];
+    const [movedStep] = newIds.splice(draggedIndex, 1);
+    newIds.splice(targetIndex, 0, movedStep);
+
+    if (onUpdateOrder) {
+      onUpdateOrder(newIds);
+    }
+    setDraggedIndex(null);
   };
 
   return (
@@ -234,16 +263,26 @@ const LocationMultiPicker = ({ options, selectedIds, onAdd, onRemove, onReorder,
       )}
       <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {selectedIds.map((id, index) => (
-          <span key={id} style={{
-            background: '#e2f0fc',
-            padding: '6px 12px',
-            borderRadius: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            fontSize: '0.9rem',
-            fontWeight: '600',
-            color: '#2563eb'
-          }}>
+          <span
+            key={id}
+            draggable={!disabled}
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={(e) => handleDrop(e, index)}
+            style={{
+              background: '#e2f0fc',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              color: '#2563eb',
+              cursor: disabled ? 'default' : 'move',
+              opacity: draggedIndex === index ? 0.5 : 1,
+              transition: 'all 0.2s'
+            }}
+          >
             <span style={{
               background: '#2563eb', color: 'white', borderRadius: '50%',
               width: '18px', height: '18px', display: 'flex', alignItems: 'center',
@@ -299,6 +338,8 @@ const LocationMultiPicker = ({ options, selectedIds, onAdd, onRemove, onReorder,
 };
 
 const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
+  const [draggedIndex, setDraggedIndex] = useState(null);
+
   if (!locations || locations.length === 0) return null;
 
   const polylinePositions = locations.map(l => [l.lat, l.lng]);
@@ -312,6 +353,30 @@ const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
     newLocations.splice(newIndex, 0, movedItem);
 
     onUpdateOrder(newLocations.map(l => l.id));
+  };
+
+  const handleDragStart = (e, index) => {
+    if (readOnly) return;
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    if (readOnly) return;
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (readOnly || draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const newLocations = [...locations];
+    const [movedItem] = newLocations.splice(draggedIndex, 1);
+    newLocations.splice(targetIndex, 0, movedItem);
+
+    onUpdateOrder(newLocations.map(l => l.id));
+    setDraggedIndex(null);
   };
 
   return (
@@ -331,12 +396,20 @@ const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
             {locations.map((loc, index) => (
-              <div key={loc.id} style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '10px', marginBottom: '8px', backgroundColor: 'white',
-                borderRadius: '8px', border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-              }}>
+              <div
+                key={loc.id}
+                draggable={!readOnly}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '10px', marginBottom: '8px', backgroundColor: 'white',
+                  borderRadius: '8px', border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  cursor: !readOnly ? 'grab' : 'default',
+                  opacity: draggedIndex === index ? 0.5 : 1
+                }}>
                 {!readOnly && (
                   <input
                     type="number"
@@ -362,12 +435,15 @@ const MapModal = ({ locations, onClose, onUpdateOrder, readOnly = false }) => {
                   <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{loc.city}</div>
                   <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{loc.id}</div>
                 </div>
+                {!readOnly && (
+                  <div style={{ color: '#ccc', cursor: 'grab' }}>☰</div>
+                )}
               </div>
             ))}
           </div>
           {!readOnly && (
             <div style={{ padding: '12px', fontSize: '0.8rem', color: '#6b7280', textAlign: 'center', borderTop: '1px solid #eee' }}>
-              Type a number to move location
+              Drag items to reorder route
             </div>
           )}
         </div>
@@ -427,6 +503,8 @@ const AssignLocation = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showMap, setShowMap] = useState(false);
   const [viewingMapEmployeeId, setViewingMapEmployeeId] = useState(null);
+
+  const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -597,7 +675,7 @@ const AssignLocation = () => {
       <h1>Assign Location to Employee</h1>
       <br />
 
-      {/* Search Bar */}
+      {/* Search Bar and Date Filter */}
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexDirection: isMobile ? 'column' : 'row' }}>
         <input
           type="text"
@@ -612,6 +690,19 @@ const AssignLocation = () => {
             fontSize: '1rem'
           }}
         />
+        <input
+          type="date"
+          value={filterDate}
+          max={todayStr}
+          onChange={(e) => setFilterDate(e.target.value)}
+          style={{
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
+            fontSize: '1rem',
+            width: isMobile ? '100%' : 'auto'
+          }}
+        />
       </div>
 
       {/* Employee List Table */}
@@ -621,72 +712,75 @@ const AssignLocation = () => {
             <tr>
               <th>Employee</th>
               <th>Role</th>
-              <th>Assigned Locations</th>
+              <th>Assigned Locations {filterDate && <span style={{ fontSize: '0.8em', fontWeight: 'normal' }}>(Filtered by {filterDate})</span>}</th>
               <th>Map</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {pagedEmployees.length > 0 ? (
-              pagedEmployees.map(emp => (
-                <tr key={emp.employeeId}>
-                  <td>
-                    <div style={{ fontWeight: '600', color: '#333' }}>{emp.name}</div>
-                    <div style={{ fontSize: '0.85rem', color: '#666' }}>{emp.email}</div>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${emp.role === 'thirdparty' ? 'status-pending' : 'status-active'}`}>
-                      {emp.role}
-                    </span>
-                  </td>
-                  <td>
-                    {emp.assignedLocations.length > 0 ? (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                        {emp.assignedLocations.map((loc, idx) => (
-                          <span key={idx} style={{
-                            background: '#f0f4f8',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #e1e4e8',
-                            ...highlightIfToday(loc.date)
-                          }}>
-                            {loc.locationId}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <span style={{ color: '#999', fontStyle: 'italic' }}>None</span>
-                    )}
-                  </td>
-                  <td>
-                    {emp.assignedLocations.length > 0 && (
+              pagedEmployees.map(emp => {
+                const displayLocations = emp.assignedLocations.filter(loc => !filterDate || loc.date === filterDate);
+                return (
+                  <tr key={emp.employeeId}>
+                    <td>
+                      <div style={{ fontWeight: '600', color: '#333' }}>{emp.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#666' }}>{emp.email}</div>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${emp.role === 'thirdparty' ? 'status-pending' : 'status-active'}`}>
+                        {emp.role}
+                      </span>
+                    </td>
+                    <td>
+                      {displayLocations.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {displayLocations.map((loc, idx) => (
+                            <span key={idx} style={{
+                              background: '#f0f4f8',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.85rem',
+                              border: '1px solid #e1e4e8',
+                              ...highlightIfToday(loc.date)
+                            }}>
+                              {loc.locationId}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#999', fontStyle: 'italic' }}>None</span>
+                      )}
+                    </td>
+                    <td>
+                      {emp.assignedLocations.length > 0 && (
+                        <button
+                          onClick={() => setViewingMapEmployeeId(emp.employeeId)}
+                          title="View Map"
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            fontSize: '1.2rem', padding: '4px 8px', borderRadius: '4px',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f0f9ff'}
+                          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          🗺️
+                        </button>
+                      )}
+                    </td>
+                    <td>
                       <button
-                        onClick={() => setViewingMapEmployeeId(emp.employeeId)}
-                        title="View Map"
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          fontSize: '1.2rem', padding: '4px 8px', borderRadius: '4px',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f0f9ff'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                        className="btn btn-primary"
+                        onClick={() => handleAssignClick(emp.employeeId)}
+                        style={{ padding: '6px 12px', fontSize: '0.9rem' }}
                       >
-                        🗺️
+                        Assign
                       </button>
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleAssignClick(emp.employeeId)}
-                      style={{ padding: '6px 12px', fontSize: '0.9rem' }}
-                    >
-                      Assign
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="4" className="text-center" style={{ padding: '32px', color: '#666' }}>
@@ -787,6 +881,7 @@ const AssignLocation = () => {
                   disabled={!formData.assignmentDate}
                   anchorLocationId={formData.locationIds.length > 0 ? formData.locationIds[0] : null}
                   onAutoAssign={handleAutoAssign}
+                  onUpdateOrder={handleUpdateLocationOrder}
                 />
               </div>
               <div className="form-group">

@@ -1,0 +1,45 @@
+Executive Summary
+The Preventive Maintenance Dashboard (PMD) is a centralized asset management solution designed to minimize downtime and prevent electrical appliance failures across various operational sites, including stores and warehouses. By integrating two core databases—the Inventory Management System (IMS) for location logistics and the Fixed Asset Register (FAR) for appliance lifecycle data—the system provides a unified interface for managers to oversee maintenance operations and for employees to execute field inspections.
+The platform optimizes field operations through intelligent routing and auto-assignment features, ensuring that maintenance tasks are performed efficiently. With real-time KPI tracking, digitized inspection forms, and automated reporting, the PMD transforms reactive maintenance into a proactive, data-driven strategy to extend asset life and ensure operational continuity.
+________________________________________
+
+Project Objective
+The primary objective of the Preventive Maintenance Dashboard is to establish a robust, end-to-end digital workflow for appliance upkeep. This includes:
+•	Centralizing Data: Consolidating location and asset data to provide a single source of truth.
+•	Optimizing Logistics: Reducing travel time for field employees through automated proximity-based task assignment and route reordering.
+•	Standardizing Inspections: Ensuring high-quality maintenance through mandatory photo evidence and digital checklists.
+•	Enhancing Visibility: Providing managers with real-time analytics and a streamlined approval process for maintenance reports.
+________________________________________
+
+High-Level Functional Requirements
+User Access & Navigation
+•	The system shall provide a persistent sidebar navigation bar tailored to the user’s role (Manager or Employee).
+•	The Manager sidebar must include links to the Dashboard, Add Appliance, Add Location, Assign Location to Employee, and Notifications.
+•	The Employee sidebar must include links to the Dashboard and Notifications.
+•	Notifications include redirection to task reviews, employee messages, and third-party communications.
+Managerial Oversight & Asset Management
+•	The system shall display a Manager Dashboard featuring high-level KPIs, including total locations, assignment status of locations, and employee availability.
+•	The system shall provide a centralized Appliance Tracking List that groups assets by location and includes comprehensive details such as AMC dates, serial numbers, and purchase history.
+•	Managers shall have the ability to review status(completed,Not Done and Support Assist) and approve maintenance reports directly from the dashboard via a dedicated search and modal view interface.
+•	In cases where the task status is Not Done or Support Assist, the Reassign button shall be visible, and reassignment shall be permitted only to the same employee, with a mandatory remark added by the Manager in the Assignment form.
+•	The system shall provide digital forms to input new assets into the FAR database and new geographical locations into the IMS database, ensuring all required metadata (e.g., coordinates, asset category) is captured.
+Task Assignment & Route Optimization
+•	The system shall allow managers to assign multiple locations to a specific employee for a scheduled date following the completion of an inspection period.
+•	The system automatically populates the location name in the input field once the scheduled date is extended beyond the defined inspection period.
+•	The system shall feature an "Auto-Assign" function that identifies and suggests up to 10 nearby stores based on the initial location selected.
+•	The assignment interface must include a reconfigurable Map View and ordering tool, allowing managers to sequence locations to minimize travel time.
+•	Upon task submission, the system shall automatically update both the FAR database and the assigned employee's task list in real-time.
+•	In cases where the task status is Not Done or Support Assist, the assignment shall remain with the same employee with mandatory remark field, and the system shall not update or modify any data in the FAR database.
+Field Operations & Employee Workflow
+•	The Employee Dashboard shall provide personalized KPIs tracking total, assigned, and completed locations.
+•	The system shall offer a dual-tab interface for "Today’s Tasks" and "Work History," allowing employees to toggle between active assignments and archived reports.
+•	The system shall provide a Map View for employees that displays assigned locations in the specific numbered order defined by the manager to ensure efficient commuting.
+•	The "Today’s Tasks" table must provide direct access to an "Inspect" button for each assigned Location ID.
+•	Today’s Tasks shall be updated when task reassignments are made with an added Remark column from the Manager (or any short note) for daily assignments it must show N/A, and the employee shall be notified accordingly.
+Appliance Inspection & Reporting
+•	The system shall generate a location-specific inspection form listing all registered appliances in alphabetical order.
+•	For each appliance, the system shall require the employee to upload "Before Work" and "After Work" photos and complete a functional checklist.
+•	The system shall enforce conditional logic for submission: the "Completed" status requires all fields (except remarks) to be filled, while "Assist Support" or "Not Done" statuses require mandatory remarks.
+•	The system shall allow employees to generate and download a maintenance report upon completion of the location inspection.
+•	Once the report is submitted, the Manager is notified. Upon the Manager’s approval, the task is marked as completed.
+•	Completed tasks shall automatically transition to the Work History tab of the Assigned Employee.
