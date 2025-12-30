@@ -190,25 +190,69 @@ const EmployeeDashboard = () => {
   const [currentPageToday, setCurrentPageToday] = useState(1);
   const [currentPageHistory, setCurrentPageHistory] = useState(1);
   const [showMap, setShowMap] = useState(false);
+  const [todayFilters, setTodayFilters] = useState({});
+  const [historyFilters, setHistoryFilters] = useState({});
 
   useEffect(() => {
     if (activeTab === 'today') setCurrentPageToday(1);
     else setCurrentPageHistory(1);
   }, [activeTab]);
 
+  const handleTodayFilterChange = (key, value) => {
+    setTodayFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPageToday(1);
+  };
+
+  const handleHistoryFilterChange = (key, value) => {
+    setHistoryFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPageHistory(1);
+  };
+
+  const filteredTodaysAssignments = useMemo(() => {
+    return todaysAssignments.filter(store => {
+      return Object.entries(todayFilters).every(([key, value]) => {
+        if (!value) return true;
+        const cellValue = String(store[key] || '').toLowerCase();
+        return cellValue.includes(value.toLowerCase());
+      });
+    });
+  }, [todaysAssignments, todayFilters]);
+
+  const uniqueHistoryStatuses = ['completed', 'pending', 'support_assist', 'not_accepted'];
+  const filteredEmployeeHistory = useMemo(() => {
+    return employeeHistory.filter(entry => {
+      return Object.entries(historyFilters).every(([key, value]) => {
+        if (!value) return true;
+        let cellValue;
+        if (key === 'date') {
+          // entry.date is likely YYYY-MM-DD or ISO
+          cellValue = String(entry.date || '').toLowerCase();
+          // if value is YYYY-MM-DD from input, we can check includes
+          return cellValue.includes(value);
+        } else if (key === 'status') {
+          cellValue = String(entry[key] || '').toLowerCase();
+          return cellValue === value.toLowerCase();
+        } else {
+          cellValue = String(entry[key] || '').toLowerCase();
+        }
+        return cellValue.includes(value.toLowerCase());
+      });
+    });
+  }, [employeeHistory, historyFilters]);
+
   const pagedTodaysAssignments = useMemo(() => {
     const start = (currentPageToday - 1) * rowsPerPage;
-    return todaysAssignments.slice(start, start + rowsPerPage);
-  }, [todaysAssignments, currentPageToday]);
+    return filteredTodaysAssignments.slice(start, start + rowsPerPage);
+  }, [filteredTodaysAssignments, currentPageToday]);
 
-  const totalTodayPages = Math.max(1, Math.ceil(todaysAssignments.length / rowsPerPage));
+  const totalTodayPages = Math.max(1, Math.ceil(filteredTodaysAssignments.length / rowsPerPage));
 
   const pagedEmployeeHistory = useMemo(() => {
     const start = (currentPageHistory - 1) * rowsPerPage;
-    return employeeHistory.slice(start, start + rowsPerPage);
-  }, [employeeHistory, currentPageHistory]);
+    return filteredEmployeeHistory.slice(start, start + rowsPerPage);
+  }, [filteredEmployeeHistory, currentPageHistory]);
 
-  const totalHistoryPages = Math.max(1, Math.ceil(employeeHistory.length / rowsPerPage));
+  const totalHistoryPages = Math.max(1, Math.ceil(filteredEmployeeHistory.length / rowsPerPage));
 
   const handleStoreClick = (storeId) => {
     navigate(`/employee/inspection/${storeId}`);
@@ -238,11 +282,11 @@ const EmployeeDashboard = () => {
   });
 
   const mapLocations = useMemo(() => {
-    return todaysAssignments.map(store => {
+    return filteredTodaysAssignments.map(store => {
       const loc = mockLocations.find(l => l.id === store.locationId);
       return loc ? { ...loc, city: store.name } : null;
     }).filter(Boolean);
-  }, [todaysAssignments]);
+  }, [filteredTodaysAssignments]);
 
   return (
     <div>
@@ -423,43 +467,93 @@ const EmployeeDashboard = () => {
       >
         {activeTab === 'today' && (
           <>{todaysAssignments.length > 0 ? (
-            <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
-                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Address</th>
-                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Contact</th>
-                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Phone</th>
-                  <th style={{ padding: '8px', border: '1px solid #ddd' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagedTodaysAssignments.map(store => (
-                  <tr
-                    key={store.id}
-                    tabIndex={0}
-                    className="row-hover"
-                    aria-label={`Inspect ${store.name}`}
-                    onClick={() => handleStoreClick(store.id)}
-                    onKeyDown={e => e.key === 'Enter' && handleStoreClick(store.id)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.name}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.address}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactPerson}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{store.contactNumber}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                      <button
-                        style={{ padding: '8px 16px', backgroundColor: '#1976d2', color: '#fff', border: 'none', borderRadius: 12, fontWeight: '600', cursor: 'pointer' }}
-                        onClick={e => { e.stopPropagation(); handleStoreClick(store.id); }}
-                      >
-                        Inspect
-                      </button>
-                    </td>
+            <div className="dashboard-table-container">
+              <table className="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>
+                      <div className="header-cell-content">
+                        Store
+                        <input
+                          type="text"
+                          className="filter-input"
+                          placeholder="Filter..."
+                          value={todayFilters.name || ''}
+                          onChange={(e) => handleTodayFilterChange('name', e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </th>
+                    <th>
+                      <div className="header-cell-content">
+                        Address
+                        <input
+                          type="text"
+                          className="filter-input"
+                          placeholder="Filter..."
+                          value={todayFilters.address || ''}
+                          onChange={(e) => handleTodayFilterChange('address', e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </th>
+                    <th>
+                      <div className="header-cell-content">
+                        Contact
+                        <input
+                          type="text"
+                          className="filter-input"
+                          placeholder="Filter..."
+                          value={todayFilters.contactPerson || ''}
+                          onChange={(e) => handleTodayFilterChange('contactPerson', e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </th>
+                    <th>
+                      <div className="header-cell-content">
+                        Phone
+                        <input
+                          type="text"
+                          className="filter-input"
+                          placeholder="Filter..."
+                          value={todayFilters.contactNumber || ''}
+                          onChange={(e) => handleTodayFilterChange('contactNumber', e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pagedTodaysAssignments.map(store => (
+                    <tr
+                      key={store.id}
+                      tabIndex={0}
+                      className="row-hover"
+                      aria-label={`Inspect ${store.name}`}
+                      onClick={() => handleStoreClick(store.id)}
+                      onKeyDown={e => e.key === 'Enter' && handleStoreClick(store.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <td>{store.name}</td>
+                      <td>{store.address}</td>
+                      <td>{store.contactPerson}</td>
+                      <td>{store.contactNumber}</td>
+                      <td>
+                        <button
+                          style={{ padding: '8px 16px', backgroundColor: '#1976d2', color: '#fff', border: 'none', borderRadius: 12, fontWeight: '600', cursor: 'pointer' }}
+                          onClick={e => { e.stopPropagation(); handleStoreClick(store.id); }}
+                        >
+                          Inspect
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
               No assignments scheduled for today.
@@ -472,35 +566,98 @@ const EmployeeDashboard = () => {
           <>
             <div>
               {employeeHistory.length > 0 ? (
-                <table className="stores-table grouped-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.06rem' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Store</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Date</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Duration</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Status</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd' }}>Remarks</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pagedEmployeeHistory.map(entry => (
-                      <tr key={entry.id}>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.storeName}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(entry.date)}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.duration}</td>
-                        <td style={{
-                          fontWeight: 600,
-                          color: entry.status === 'completed' ? '#4caf50' : '#f57c00',
-                          padding: '8px',
-                          border: '1px solid #ddd',
-                        }}>
-                          {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
-                        </td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{entry.remarks}</td>
+                <div className="dashboard-table-container">
+                  <table className="dashboard-table">
+                    <thead>
+                      <tr>
+                        <th>
+                          <div className="header-cell-content">
+                            Store
+                            <input
+                              type="text"
+                              className="filter-input"
+                              placeholder="Filter..."
+                              value={historyFilters.storeName || ''}
+                              onChange={(e) => handleHistoryFilterChange('storeName', e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </th>
+                        <th>
+                          <div className="header-cell-content">
+                            Date
+                            <input
+                              type="date"
+                              className="filter-input"
+                              value={historyFilters.date || ''}
+                              onChange={(e) => handleHistoryFilterChange('date', e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </th>
+                        <th>
+                          <div className="header-cell-content">
+                            Duration
+                            <input
+                              type="text"
+                              className="filter-input"
+                              placeholder="Filter..."
+                              value={historyFilters.duration || ''}
+                              onChange={(e) => handleHistoryFilterChange('duration', e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </th>
+                        <th>
+                          <div className="header-cell-content">
+                            Status
+                            <select
+                              className="filter-input"
+                              value={historyFilters.status || ''}
+                              onChange={(e) => handleHistoryFilterChange('status', e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <option value="">All</option>
+                              {uniqueHistoryStatuses.map(status => (
+                                <option key={status} value={status}>
+                                  {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </th>
+                        <th>
+                          <div className="header-cell-content">
+                            Remarks
+                            <input
+                              type="text"
+                              className="filter-input"
+                              placeholder="Filter..."
+                              value={historyFilters.remarks || ''}
+                              onChange={(e) => handleHistoryFilterChange('remarks', e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {pagedEmployeeHistory.map(entry => (
+                        <tr key={entry.id}>
+                          <td>{entry.storeName}</td>
+                          <td>{formatDate(entry.date)}</td>
+                          <td>{entry.duration}</td>
+                          <td>
+                            <span className={`status-badge ${entry.status === 'completed' ? 'status-active' : 'status-pending'}`}>
+                              {entry.status.charAt(0).toUpperCase() + entry.status.slice(1).replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td>{entry.remarks}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div style={{ textAlign: 'center', fontStyle: 'italic', color: '#777', padding: 28, fontSize: '1.1rem' }}>
                   No maintenance history found.

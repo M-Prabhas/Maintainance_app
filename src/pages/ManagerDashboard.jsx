@@ -13,9 +13,12 @@ const allEmployees = [
   { employeeId: 'E002', name: 'Priya Mehra', assignedLocations: [] }
 ];
 
+const uniqueAMCStatuses = ['active', 'expiring', 'expired'];
+
 const ManagerDashboard = () => {
   // State Definitions
   const [locationSearch, setLocationSearch] = useState('');
+  const [columnFilters, setColumnFilters] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
 
@@ -82,17 +85,44 @@ const ManagerDashboard = () => {
   };
 
   const appliancesFiltered = useMemo(() => {
-    if (!locationSearch.trim()) return mockAppliances;
-    const searchLower = locationSearch.toLowerCase();
-    const matchingLocIds = mockLocations
-      .filter(loc =>
-        loc.id.toLowerCase().includes(searchLower) ||
-        loc.city.toLowerCase().includes(searchLower) ||
-        loc.region.toLowerCase().includes(searchLower)
-      )
-      .map(loc => loc.id);
-    return mockAppliances.filter(app => matchingLocIds.includes(app.locationId));
-  }, [locationSearch]);
+    let filtered = mockAppliances;
+
+    // 1. Global Search
+    if (locationSearch.trim()) {
+      const searchLower = locationSearch.toLowerCase();
+      const matchingLocIds = mockLocations
+        .filter(loc =>
+          loc.id.toLowerCase().includes(searchLower) ||
+          loc.city.toLowerCase().includes(searchLower) ||
+          loc.region.toLowerCase().includes(searchLower)
+        )
+        .map(loc => loc.id);
+      filtered = filtered.filter(app => matchingLocIds.includes(app.locationId));
+    }
+
+    // 2. Column Filters
+    if (Object.keys(columnFilters).length > 0) {
+      filtered = filtered.filter(app => {
+        return Object.entries(columnFilters).every(([key, value]) => {
+          if (!value) return true;
+          const cellValue = String(app[key] || '').toLowerCase();
+
+          if (key === 'amcStatus') {
+            return cellValue === value.toLowerCase();
+          }
+          if (key === 'amcStartDate' || key === 'amcEndDate') {
+            // value from input is YYYY-MM-DD
+            // cellValue is likely YYYY-MM-DD... or ISO
+            return cellValue.includes(value);
+          }
+
+          return cellValue.includes(value.toLowerCase());
+        });
+      });
+    }
+
+    return filtered;
+  }, [locationSearch, columnFilters]);
 
   const grouped = useMemo(() => {
     const groups = {};
@@ -117,6 +147,14 @@ const ManagerDashboard = () => {
 
   const handleSearchChange = (e) => {
     setLocationSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleColumnFilterChange = (key, value) => {
+    setColumnFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
     setCurrentPage(1);
   };
 
@@ -269,23 +307,146 @@ const ManagerDashboard = () => {
           />
         </div>
 
-        <h2>Appliances List</h2>
+        <h2>Appliance List</h2>
         <br />
-        <div className="stores-table-scroll" style={{ maxHeight: '430px', overflowY: 'auto' }}>
-          <table className="stores-table grouped-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <div className="dashboard-table-container">
+          <table className="dashboard-table">
             <thead>
-              <tr style={{ backgroundColor: '#f5f5f5', color: '#222' }}>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>S.No</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Location ID</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Asset Code</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Name</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Model</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Serial Number</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>Category</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC Vendor</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC Start</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC End</th>
-                <th style={{ padding: '8px', border: '1px solid #ddd' }}>AMC Status</th>
+              <tr>
+                <th>S.No</th>
+                <th>
+                  <div className="header-cell-content">
+                    Location ID
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.locationId || ''}
+                      onChange={(e) => handleColumnFilterChange('locationId', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    Asset Code
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.id || ''}
+                      onChange={(e) => handleColumnFilterChange('id', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    Name
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.name || ''}
+                      onChange={(e) => handleColumnFilterChange('name', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    Model
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.model || ''}
+                      onChange={(e) => handleColumnFilterChange('model', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    Serial Number
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.serialNumber || ''}
+                      onChange={(e) => handleColumnFilterChange('serialNumber', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    Category
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.category || ''}
+                      onChange={(e) => handleColumnFilterChange('category', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    AMC Vendor
+                    <input
+                      type="text"
+                      className="filter-input"
+                      placeholder="Filter..."
+                      value={columnFilters.amcVendor || ''}
+                      onChange={(e) => handleColumnFilterChange('amcVendor', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    AMC Start
+                    <input
+                      type="date"
+                      className="filter-input"
+                      value={columnFilters.amcStartDate || ''}
+                      onChange={(e) => handleColumnFilterChange('amcStartDate', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    AMC End
+                    <input
+                      type="date"
+                      className="filter-input"
+                      value={columnFilters.amcEndDate || ''}
+                      onChange={(e) => handleColumnFilterChange('amcEndDate', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th>
+                  <div className="header-cell-content">
+                    AMC Status
+                    <select
+                      className="filter-input"
+                      value={columnFilters.amcStatus || ''}
+                      onChange={(e) => handleColumnFilterChange('amcStatus', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value="">All</option>
+                      {uniqueAMCStatuses.map(status => (
+                        <option key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -298,7 +459,7 @@ const ManagerDashboard = () => {
               ) : (
                 pagedData.map((app, idx) => (
                   <tr key={app.id}>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                    <td>
                       {(currentPage - 1) * rowsPerPage + idx + 1}
                     </td>
                     {app.locRow === 0 && (
@@ -307,8 +468,6 @@ const ManagerDashboard = () => {
                         style={{
                           verticalAlign: 'middle',
                           fontWeight: 'bold',
-                          padding: '8px',
-                          border: '1px solid #ddd',
                           cursor: 'pointer',
                           color: '#1976d2',
                           textDecoration: 'underline'
@@ -330,15 +489,19 @@ const ManagerDashboard = () => {
                         {app.locId}
                       </td>
                     )}
-                    <td style={{ padding: '8px', border: '1px solid #5e1ee7ff' }}>{app.id}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.name}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.model}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.serialNumber}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.category}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.amcVendor}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(app.amcStartDate)}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{formatDate(app.amcEndDate)}</td>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{app.amcStatus}</td>
+                    <td>{app.id}</td>
+                    <td>{app.name}</td>
+                    <td>{app.model}</td>
+                    <td>{app.serialNumber}</td>
+                    <td>{app.category}</td>
+                    <td>{app.amcVendor}</td>
+                    <td>{formatDate(app.amcStartDate)}</td>
+                    <td>{formatDate(app.amcEndDate)}</td>
+                    <td>
+                      <span className={`status-badge ${app.amcStatus === 'active' ? 'status-active' : app.amcStatus === 'expiring' ? 'status-pending' : 'status-inactive'}`}>
+                        {app.amcStatus.charAt(0).toUpperCase() + app.amcStatus.slice(1)}
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}

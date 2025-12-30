@@ -504,7 +504,13 @@ const AssignLocation = () => {
   const [showMap, setShowMap] = useState(false);
   const [viewingMapEmployeeId, setViewingMapEmployeeId] = useState(null);
 
-  const [filterDate, setFilterDate] = useState('');
+  const [columnFilters, setColumnFilters] = useState({
+    name: '',
+    role: '',
+    location: '',
+    date: '',
+    email: ''
+  });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -516,14 +522,48 @@ const AssignLocation = () => {
   const highlightIfToday = (date) => date === todayStr ? { background: "#e2ffd8" } : {};
 
   const filteredEmployees = useMemo(() => {
-    if (!searchTerm.trim()) return employees;
-    const lower = searchTerm.toLowerCase();
-    return employees.filter(emp =>
-      emp.name.toLowerCase().includes(lower) ||
-      emp.employeeId.toLowerCase().includes(lower) ||
-      emp.email.toLowerCase().includes(lower)
-    );
-  }, [employees, searchTerm]);
+    return employees.filter(emp => {
+      // Global search (if kept, or remove if using only column filters - user asked for "in table filters" so columns are key. 
+      // But keeping search bar + table filters is fine or let's just make search bar affect name/email too?
+      // The user said "style it properly with the in table filters and remove the date filter at the top". 
+      // The search bar "Search employees..." is existing. I will keep it for now as a global text search if desired, 
+      // or just assume they want ONLY table filters. 
+      // Let's keep global search as an "OR" or "AND"? Usually AND.
+
+      const globalMatch = !searchTerm.trim() ||
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (!globalMatch) return false;
+
+      // Column filters
+      if (columnFilters.name && !emp.name.toLowerCase().includes(columnFilters.name.toLowerCase())) return false;
+      if (columnFilters.role && !emp.role.toLowerCase().includes(columnFilters.role.toLowerCase())) return false;
+
+      // Filter by location (check if ANY assigned location matches)
+      if (columnFilters.location) {
+        const hasMatchingLocation = emp.assignedLocations.some(loc =>
+          loc.locationId.toLowerCase().includes(columnFilters.location.toLowerCase()) ||
+          loc.city.toLowerCase().includes(columnFilters.location.toLowerCase())
+        );
+        if (!hasMatchingLocation) return false;
+      }
+
+      // Filter by date (check if ANY assigned location has this date)
+      if (columnFilters.date) {
+        const hasMatchingDate = emp.assignedLocations.some(loc => loc.date === columnFilters.date);
+        if (!hasMatchingDate) return false;
+      }
+
+      return true;
+    });
+  }, [employees, searchTerm, columnFilters]);
+
+  const handleColumnFilterChange = (key, value) => {
+    setColumnFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
 
   const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / rowsPerPage));
   const pagedEmployees = useMemo(() => {
@@ -675,44 +715,84 @@ const AssignLocation = () => {
       <h1>Assign Location to Employee</h1>
       <br />
 
-      {/* Search Bar and Date Filter */}
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexDirection: isMobile ? 'column' : 'row' }}>
+      {/* Search Bar - User didn't explicitly say remove search bar, only date filter. Keeping it simple or removing if redundant. 
+          "remove the date filter at the top". I will keep the search bar but style it cleaner if needed. */
+       /* Actually, with in-table filters, the top search bar is often redundant. But let's keep it as a "Quick Search"? 
+          Wait, the prompt said "style it properly with the in table filters". 
+          I will remove the entire top bar if it contains date filter, OR just the date filter. 
+          "remove the date filter at the top" -> implies keeping other things? 
+          But often "in table filters" replaces global search. 
+          I'll keep the search bar input but remove the date input.
+       */}
+      <div style={{ marginBottom: '20px' }}>
         <input
           type="text"
           placeholder="Search employees..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            flex: 1,
-            padding: '12px',
-            borderRadius: '8px',
-            border: '1px solid #ccc',
-            fontSize: '1rem'
-          }}
-        />
-        <input
-          type="date"
-          value={filterDate}
-          max={todayStr}
-          onChange={(e) => setFilterDate(e.target.value)}
-          style={{
-            padding: '12px',
-            borderRadius: '8px',
-            border: '1px solid #ccc',
-            fontSize: '1rem',
-            width: isMobile ? '100%' : 'auto'
-          }}
+          className="filter-input" // Use our new class for consistency
+          style={{ maxWidth: '300px' }}
         />
       </div>
 
-      {/* Employee List Table */}
-      <div className="table-container" style={{ boxShadow: 'none', border: '1px solid #eee', marginTop: 0 }}>
-        <table>
+      <div className="dashboard-table-container">
+        <table className="dashboard-table">
           <thead>
             <tr>
-              <th>Employee</th>
-              <th>Role</th>
-              <th>Assigned Locations {filterDate && <span style={{ fontSize: '0.8em', fontWeight: 'normal' }}>(Filtered by {filterDate})</span>}</th>
+              <th>
+                <div className="header-cell-content">
+                  Employee
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Filter Name..."
+                    value={columnFilters.name || ''}
+                    onChange={(e) => handleColumnFilterChange('name', e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </th>
+              <th>
+                <div className="header-cell-content">
+                  Role
+                  <select
+                    className="filter-input"
+                    value={columnFilters.role || ''}
+                    onChange={(e) => handleColumnFilterChange('role', e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="">All</option>
+                    <option value="employee">Employee</option>
+                    <option value="thirdparty">Third Party</option>
+                  </select>
+                </div>
+              </th>
+              <th>
+                <div className="header-cell-content">
+                  Assigned Locations
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Filter Loc..."
+                    value={columnFilters.location || ''}
+                    onChange={(e) => handleColumnFilterChange('location', e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </th>
+              <th>
+                <div className="header-cell-content">
+                  Assigned Date
+                  <input
+                    type="date"
+                    className="filter-input"
+                    value={columnFilters.date || ''}
+                    onChange={(e) => handleColumnFilterChange('date', e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: '130px' }}
+                  />
+                </div>
+              </th>
               <th>Map</th>
               <th>Action</th>
             </tr>
@@ -720,7 +800,21 @@ const AssignLocation = () => {
           <tbody>
             {pagedEmployees.length > 0 ? (
               pagedEmployees.map(emp => {
-                const displayLocations = emp.assignedLocations.filter(loc => !filterDate || loc.date === filterDate);
+                // Filter displayed locations based on current filters
+                const displayLocations = emp.assignedLocations.filter(loc => {
+                  let matches = true;
+                  if (columnFilters.location) {
+                    matches = matches && (
+                      loc.locationId.toLowerCase().includes(columnFilters.location.toLowerCase()) ||
+                      loc.city.toLowerCase().includes(columnFilters.location.toLowerCase())
+                    );
+                  }
+                  if (columnFilters.date) {
+                    matches = matches && (loc.date === columnFilters.date);
+                  }
+                  return matches;
+                });
+
                 return (
                   <tr key={emp.employeeId}>
                     <td>
@@ -729,7 +823,7 @@ const AssignLocation = () => {
                     </td>
                     <td>
                       <span className={`status-badge ${emp.role === 'thirdparty' ? 'status-pending' : 'status-active'}`}>
-                        {emp.role}
+                        {emp.role === 'thirdparty' ? 'Third Party' : 'Employee'}
                       </span>
                     </td>
                     <td>
@@ -749,7 +843,22 @@ const AssignLocation = () => {
                           ))}
                         </div>
                       ) : (
-                        <span style={{ color: '#999', fontStyle: 'italic' }}>None</span>
+                        <span style={{ color: '#999', fontStyle: 'italic' }}>
+                          {emp.assignedLocations.length > 0 ? 'Filtered out' : 'None'}
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      {displayLocations.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          {displayLocations.map((loc, idx) => (
+                            <span key={idx} style={{ fontSize: '0.85rem', color: '#555' }}>
+                              {loc.date}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#999', fontStyle: 'italic' }}>-</span>
                       )}
                     </td>
                     <td>
@@ -783,7 +892,7 @@ const AssignLocation = () => {
               })
             ) : (
               <tr>
-                <td colSpan="4" className="text-center" style={{ padding: '32px', color: '#666' }}>
+                <td colSpan="6" className="text-center" style={{ padding: '32px', color: '#666' }}>
                   No employees found.
                 </td>
               </tr>

@@ -1,15 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaTachometerAlt, FaPlusCircle, FaMapMarkerAlt, FaUserTie, FaBell } from 'react-icons/fa';
+import { FaTachometerAlt, FaUserTie, FaBell } from 'react-icons/fa';
 const Sidebar = ({ userRole, isOpen, setIsOpen }) => {
   const location = useLocation();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, path: '/manager', roles: ['manager', 'employee', 'thirdparty'] },
-    { id: 'add-appliance', label: 'Add Appliance', icon: <FaPlusCircle />, path: '/add-appliance', roles: ['manager'] },
-    { id: 'add-location', label: 'Add New Location', icon: <FaMapMarkerAlt />, path: '/add-location', roles: ['manager'] },
-    { id: 'assign-location', label: 'Assign Location to Employee',icon: <FaUserTie />, path: '/assign-location', roles: ['manager'] },
-    { id: 'notifications', label: 'Notifications',  icon: <FaBell />, path: '/notifications', roles: ['manager', 'employee', 'thirdparty'] }
+    { id: 'assign-location', label: 'Assign Location to Employee', icon: <FaUserTie />, path: '/assign-location', roles: ['manager'] },
+    { id: 'notifications', label: 'Notifications', icon: <FaBell />, path: '/notifications', roles: ['manager', 'employee', 'thirdparty'] }
   ];
 
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
@@ -18,14 +16,14 @@ const Sidebar = ({ userRole, isOpen, setIsOpen }) => {
     <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
         <h2>{isOpen && 'Menu Bar'}</h2>
-        <button 
-          className="toggle-btn" 
+        <button
+          className="toggle-btn"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? '◀' : '▶'}
         </button>
       </div>
-      
+
       <nav className="sidebar-nav">
         {filteredMenuItems.map(item => (
           <Link
